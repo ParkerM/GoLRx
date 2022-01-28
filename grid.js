@@ -10,8 +10,8 @@ const boolChar = (boolVal) => {
 /**
  * @template C
  * @param subGrid {Array<Array<C>>}
- * @param transform {(C) => boolean}
- * @return {string} formatted grid
+ * @param transform {(C) => boolean} optional boolean mapper for elements in {@link subGrid}
+ * @return {string} table-formatted grid
  */
 function formatGrid(subGrid, transform = (c) => c) {
   let out = '---';
@@ -60,7 +60,7 @@ class Grid {
    * Dummy cell to represent oob
    * @type {Cell}
    */
-  oobCell;
+  #oobCell;
 
   /** @type {Array<Array<Cell>>} */
   #plane;
@@ -79,8 +79,7 @@ class Grid {
    * @param {number} height - Height of grid (integer)
    */
   constructor(width, height) {
-    this.oobCell = new Cell(null, Number.NEGATIVE_INFINITY, Number.NEGATIVE_INFINITY);
-
+    this.#oobCell = new Cell(null, Number.NEGATIVE_INFINITY, Number.NEGATIVE_INFINITY);
     this.xLen = width;
     this.yLen = height;
     this.initPlane();
@@ -111,7 +110,7 @@ class Grid {
    * @returns {Cell}
    */
   getCellAt(x, y) {
-    if (!this.insideBounds([x, y])) return this.oobCell;
+    if (!this.insideBounds([x, y])) return this.#oobCell;
     return this.#plane[x][y];
   }
 
@@ -136,7 +135,9 @@ class Grid {
       y < this.yLen;
 
   /**
-   * Get the 8 neighboring cells
+   * Gets cells immediately adjacent to the given coordinates
+   * @param {number} xPos
+   * @param {number} yPos
    * @returns {Cell[]}
    */
   getAdjacentCells(xPos, yPos) {
@@ -151,35 +152,26 @@ class Grid {
         [ 1 + xPos,  1 + yPos],
     ];
 
-    // console.log(`Coords adjacent to (${xPos}, ${yPos}):\n${neighborCells.join('\n')}`);
-    let adjacent = neighborCells
-        .filter(this.insideBounds);
-    // console.log(adjacent);
-
-    const result = adjacent
+    return neighborCells
+        .filter(this.insideBounds)
         .map(([x, y]) => this.getCellAt(x, y));
-    // console.log(`${result.length} adjacent to (${xPos},${yPos}): ${result.map(cell => '(' + cell.posX + ',' + cell.posY + ') - ' + cell.alive).join(', ')}\n${formatGrid(this.getGrid())}`)
-    // console.log(`After mapping for (${xPos},${yPos}):`);
-    // console.table(result.map(cell => cell.alive));
-    return result;
   }
 
+  /**
+   * Notifies all cells to prepare and perform their next state change.
+   */
   transition() {
     for (let x = 0; x < this.xLen; x++) {
       for (let y = 0; y < this.yLen; y++) {
-        this.getCellAt(x, y).updateState();
+        this.getCellAt(x, y).prepareNextState();
       }
     }
-    console.log("Cell states updated")
-    printGrid(this.#plane);
 
     for (let x = 0; x < this.xLen; x++) {
       for (let y = 0; y < this.yLen; y++) {
-        this.getCellAt(x, y).flush();
+        this.getCellAt(x, y).transitionToNextState();
       }
     }
-    console.log("Cells flushed")
-    printGrid(this.#plane);
   }
 }
 
@@ -193,17 +185,31 @@ class Cell {
    */
   grid;
 
-  /** @type {number} */
-  posX;
+  /**
+   * X position within {@link grid}
+   * @type {number}
+   */
+  #posX;
 
-  /** @type {number} */
-  posY;
+  /**
+   * Y position within {@link grid}
+   * @type {number}
+   */
+  #posY;
 
-  /** @type {boolean} */
+  /**
+   * Whether the cell is currently alive.
+   * See: {@link #next}
+   * @type {boolean}
+   */
   alive;
 
-  /** @type {boolean} */
-  next;
+  /**
+   * The state the cell will transition to on the next tick.
+   * See: {@link alive}
+   * @type {boolean}
+   */
+  #next;
 
   /**
    * @param {Grid} grid
@@ -211,55 +217,40 @@ class Cell {
    * @param {number} y
    */
   constructor(grid, x, y) {
-    this.posX = x;
-    this.posY = y;
+    this.#posX = x;
+    this.#posY = y;
     this.grid = grid;
     this.alive = false;
     this.subject = new Subject();
   }
 
-  updateState() {
-    if (!this.grid) return;
+  /**
+   * Determine and set the {@link #next} state for this cell based on
+   * how many of its neighbors' are currently {@link alive}.
+   */
+  prepareNextState() {
     let livingNeighborCount = this.grid
-        .getAdjacentCells(this.posX, this.posY)
+        .getAdjacentCells(this.#posX, this.#posY)
         .filter(cell => cell.alive)
         .length;
 
     if (this.alive) {
       if (livingNeighborCount < 2) {
-        this.next = false;
-        return;
+        this.#next = false;
       } else if (livingNeighborCount === 2 || livingNeighborCount === 3) {
-        this.next = true;
-        return;
+        this.#next = true;
       } else if (livingNeighborCount > 3) {
-        this.next = false;
-        return;
+        this.#next = false;
       }
-    } else if (livingNeighborCount === 3) {
-        this.next = true;
-        return;
-    } else {
-      this.next = false;
-      return;
-    }
-
-
-    let msg = '';
-    msg += `I got to the end of the branches. I'm ${this.posX},${this.posY} and my neighbor count is ${livingNeighborCount}\n`;
-    msg += 'See my grid:\n';
-    msg += formatGrid(this.grid.getGrid());
-    console.log(msg);
+    } else this.#next = livingNeighborCount === 3;
   }
 
-  flush() {
-    if (!this.grid) {
-      console.warn("FLUSHING RETURNING EARLY DUE TO MISSING GRID");
-      return;
-    }
-    console.log(`Flushing (${this.posX},${this.posY}): Alive = ${this.alive}, Next = ${this.next}\n${formatGrid(this.grid.getGrid())}`);
-    this.alive = this.next;
-    this.next = undefined;
+  /**
+   * Update this cell's state
+   */
+  transitionToNextState() {
+    this.alive = this.#next;
+    this.#next = undefined;
   }
 }
 
