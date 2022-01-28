@@ -1,58 +1,5 @@
-import {BehaviorSubject, Subject} from "rxjs";
+import {Subject} from "rxjs";
 import {EventEmitter} from 'events';
-
-const boolChar = (boolVal) => {
-  if (boolVal === true) return '#';
-  if (boolVal === false) return '.';
-  else return '?'
-}
-
-/**
- * @template C
- * @param subGrid {Array<Array<C>>}
- * @param transform {(C) => boolean} optional boolean mapper for elements in {@link subGrid}
- * @return {string} table-formatted grid
- */
-function formatGrid(subGrid, transform = (c) => c) {
-  let out = '---';
-  out += '-'.repeat(subGrid.length * 2) + '\n';
-  subGrid.forEach(row => {
-    out += '| ';
-    out += row.map(cell => boolChar(transform(cell))).join(' ');
-    out += ' |\n';
-  });
-  out += '---';
-  out += '-'.repeat(subGrid.length * 2) + '\n';
-  return out;
-}
-
-/** @param subGrid {Array<Array<Cell>>} */
-function printGrid(subGrid) {
-  console.log(formatGrid(subGrid, c => c.alive));
-}
-
-class Game {
-
-  /** @type {Set<Cell>} */
-  #cells;
-
-  /**
-   * @param {Grid} grid - The grid on which the game is played.
-   * @param {Set<Cell>} seed - The initial pattern of cells.
-   */
-  constructor(grid, seed) {
-    this.grid = grid;
-    this.#cells = seed;
-    // seed.forEach(cell => this.grid.pl.get(cell.x).set(cell.y));
-  }
-
-  /**
-   * @returns {Set<Cell>}
-   */
-  get cells() {
-    return this.#cells;
-  }
-}
 
 class Grid {
 
@@ -254,4 +201,4 @@ class Cell {
   }
 }
 
-export {Cell, Game, Grid};
+export {Cell, Grid};
