@@ -1,17 +1,4 @@
-import {
-  Observable,
-  Subject,
-  Subscription,
-  map,
-  switchMapTo,
-  tap,
-  zip,
-  zipWith,
-    combineLatest,
-  combineLatestWith,
-  sample,
-  of, switchMap
-} from "rxjs";
+import {map, Observable, of, sample, Subject, Subscription, switchMap, zip} from "rxjs";
 import {allPairs} from "./util";
 
 class Grid {
@@ -34,6 +21,10 @@ class Grid {
   /** @type {Subject<void>} */
   notifier = new Subject();
 
+  /**
+   * Whether the game is currently running.
+   * @type {boolean}
+   */
   #running = false;
 
   /**
@@ -60,7 +51,6 @@ class Grid {
       let col = new Array(this.yLen);
       for (let y = 0; y < this.yLen; y++) {
         col[y] = new Cell(this.notifier, x, y);
-        // this.subscriptions.add(this.notifier.subscribe(col[y].tickListener));
       }
       this.#plane[x] = col;
     }
@@ -136,17 +126,6 @@ class Grid {
         .map(([x, y]) => this.getCellAt(x, y));
   }
 
-  // /**
-  //  * Notifies all cells to prepare and perform their next state change.
-  //  */
-  // transition() {
-  //   this.#coordinatePairs()
-  //       .map(([x, y]) => this.getCellAt(x, y))
-  //       .forEach(c => c.prepareNextState());
-  //   this.#coordinatePairs()
-  //       .map(([x, y]) => this.getCellAt(x, y))
-  //       .forEach(c => c.transitionToNextState());
-  // }
   transition() {
     if (!this.#running) {
       this.#running = true;
@@ -164,14 +143,22 @@ class Grid {
     return allPairs(xRange, yRange);
   }
 
+  /**
+   * Attaches each cell's notifier to its neighbors' listeners.
+   * Each cell's subscription is stored in {@link subscriptions}.
+   */
   #introduceNeighbors() {
     return this.#coordinatePairs()
         .map(([x, y]) => [x, y, this.getCellAt(x, y)])
-        .forEach(([x, y, cell]) =>
+        .map(([x, y, cell]) =>
             cell.listenToNeighbors(this.#getAdjacentCells(x, y).map(c => c.neighborNotifier.asObservable()))
-        );
+        )
+        .forEach(subscription => this.subscriptions.add(subscription));
   }
 
+  /**
+   * Kicks off the first notification for each cell.
+   */
   #broadcastStart() {
     this.#coordinatePairs()
         .map(([x, y]) => this.getCellAt(x, y))
@@ -180,18 +167,6 @@ class Grid {
 }
 
 class Cell {
-
-  // /**
-  //  * Observer used to receive notifications from neighbors
-  //  * @type {Subject<boolean>[]}
-  //  */
-  // neighborListener;
-  //
-  // /**
-  //  * Number of adjacent cells. Used to buffer {@link neighborListener}.
-  //  * @type {number}
-  //  */
-  // adjacentCellCount;
 
   /**
    * Subject used to notify neighbors of current state
@@ -206,52 +181,25 @@ class Cell {
   #ticker;
 
   /**
-   * Reference to the parent grid
-   * @type {Grid}
-   */
-  grid;
-
-  /**
-   * X position within {@link grid}
+   * X position within the grid.
    * @type {number}
    */
   #posX;
 
   /**
-   * Y position within {@link grid}
+   * Y position within the grid.
    * @type {number}
    */
   #posY;
 
   /**
    * Whether the cell is currently alive.
-   * See: {@link #next}
    * @type {boolean}
    */
   alive;
 
   /**
-   * The state the cell will transition to on the next tick.
-   * See: {@link alive}
-   * @type {boolean}
-   */
-  #next;
-
-  /**
-   * @param {Grid} grid
-   * @param {number} x
-   * @param {number} y
-   */
-  // constructor(grid, x, y) {
-  //   this.#posX = x;
-  //   this.#posY = y;
-  //   this.grid = grid;
-  //   this.alive = false;
-  //   this.adjacentCellSubject = Subject.create();
-  // }
-
-  /**
-   * @param {Observable<void>} ticker
+   * @param {Observable<void>} ticker - the game "clock" that emits whenever state should update
    * @param {number} x
    * @param {number} y
    */
@@ -262,92 +210,52 @@ class Cell {
     this.#ticker = ticker;
   }
 
-  // /**
-  //  * Determine and set the {@link #next} state for this cell based on
-  //  * how many of its neighbors' are currently {@link alive}.
-  //  */
-  // prepareNextState() {
-  //   let livingNeighborCount = this.grid
-  //       .#getAdjacentCells(this.#posX, this.#posY)
-  //       .filter(cell => cell.alive)
-  //       .length;
-  //
-  //   if (livingNeighborCount === 3) this.#next = true;
-  //   else this.#next = this.alive && livingNeighborCount === 2;
-  // }
-  //
-  // /**
-  //  * Update this cell's state
-  //  */
-  // transitionToNextState() {
-  //   this.alive = this.#next;
-  //   this.#next = undefined;
-  // }
-
   /**
    * Returns true (alive) or false (dead) for the next state based on number of
    * living neighbor cells.
+   *
    * @param livingNeighborCount {number} number of living neighbors
    * @returns {boolean}
    */
   #nextState(livingNeighborCount) {
-    console.log(`Neighbors at (${this.#posX},${this.#posY}): ${livingNeighborCount}`);
     if (livingNeighborCount === 3) return true;
     return this.alive && livingNeighborCount === 2;
   }
 
+  /**
+   * Updates this cell's state and returns it wrapped in an observable.
+   *
+   * @param livingNeighborCount {number}
+   * @return {Observable<boolean>}
+   */
   #updateState(livingNeighborCount) {
     this.alive = this.#nextState(livingNeighborCount);
     return of(this.alive);
   }
 
+  /**
+   * Exposed to kick off the initial notification.
+   */
   start() {
     this.neighborNotifier.next(this.alive);
   }
 
   /**
-   * Accepts state notifiers from all neighboring cells, sets an
-   * accept window, and kicks off the big subscription.
+   * Subscribes to each neighbor's notifier and updates state based on the emitted
+   * values on each tick signal.
    *
    * @param notifiers {Observable<boolean>[]}
    * @return {Subscription}
    */
   listenToNeighbors(notifiers) {
-    // this.adjacentCellCount = notifiers.length;
-    // this.neighborListener = notifiers;
-    // tap(_ => this.neighborNotifier.next(this.alive));
-
-    const z$ = this.#ticker.pipe(
-        tap(_ => this.neighborNotifier.next(this.alive)),
-        switchMapTo(zip(notifiers)),
-        tap(a => console.log(a)),
-        map(bools => bools.filter(b => !!b).length),
-        tap(a => console.log(a)),
-    );
-
-    const o$ = zip(notifiers).pipe(
+    return zip(notifiers).pipe(
         sample(this.#ticker),
-        tap(a => console.log(a)),
         map(bools => bools.filter(b => !!b).length),
-        tap(a => console.log(a)),
         switchMap(neighborCount => this.#updateState(neighborCount)),
-    );
-
-    // this.neighborNotifier.next(this.alive);
-    return o$.subscribe({
+    ).subscribe({
       next: state => this.neighborNotifier.next(state),
       error: err => console.error(`Error in cell ${this.#posX},${this.#posY}: ${err}`),
-      complete: () =>  console.log(`reached complete signal in cell ${this.#posX},${this.#posY}`),
     });
-    // this.#ticker.pipe(
-    //     tap(_ => this.neighborNotifier.next(this.alive)),
-    //     switchMapTo(combineLatestWith(notifiers)),
-    //     tap(a => console.log(a)),
-    //     switchMapTo(zipWith(notifiers)),
-    //     map(bools => bools.filter(b => !!b).length),
-    // ).subscribe({
-    //   next: value => console.log(`got next subscribed value: ${value}`)
-    // });
   }
 }
 
