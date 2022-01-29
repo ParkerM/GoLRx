@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Game of Life RxJS</title>
+  <meta charset="UTF-8">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/460/fabric.js"
+          integrity="sha512-d5yqsvICrC8y0ivNsNizSCHXjzireXYU6LmzAvcrL97GMwEn0VKx1vclEwvtsh/yPD2EcATnUG1oEtJuFcTE3Q=="
+          crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script type="module" src="modules/renderer.js"></script>
+  <script type="module">
+    import {Renderer} from './modules/renderer.js';
+
+    document.addEventListener('DOMContentLoaded', (event) => {
+      console.log(`DOM fully loaded and parsed: ${JSON.stringify(event, null, 2)}`);
+
+      const renderer = new Renderer(document.getElementById('game-grid'));
+      renderer.drawRect();
+      renderer.drawGridLines();
+    });
+  </script>
+</head>
+
+<body style=" background: lightblue;">
+
+<canvas id="game-grid" width="420px" height="420px"></canvas>
+
+</body>
+</html>
