@@ -28,4 +28,12 @@ function printGrid(subGrid) {
   console.log(formatGrid(subGrid, c => c.alive));
 }
 
-export {formatGrid, printGrid};
+/**
+ * @template T
+ * @param a {Array<T>} first array
+ * @param b {Array<T>} second array
+ * @return {Array<Array<T>>} all possible pairs from the input arrays
+ */
+const allPairs = (a, b) => a.flatMap(x => b.map(y => [x, y]));
+
+export {formatGrid, printGrid, allPairs};
