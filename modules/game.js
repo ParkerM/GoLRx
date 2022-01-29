@@ -23,6 +23,13 @@ class Game {
   get cells() {
     return this.#cells;
   }
+
+  /**
+   * Progresses the game by one tick.
+   */
+  tick() {
+
+  }
 }
 
 export {Game};
