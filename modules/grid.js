@@ -72,6 +72,13 @@ class Grid {
   }
 
   /**
+   * @param {[number, number][]} coords - [x,y] pairs
+   */
+  activateCells(coords) {
+    coords.forEach(([x, y]) => this.getCellAt(x, y).alive = true);
+  }
+
+  /**
    * @param {number} x
    * @param {number} y
    * @returns {Cell}

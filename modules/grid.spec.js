@@ -3,6 +3,9 @@ import {Grid} from "./grid";
 const T = true;
 const F = false;
 
+const M = true;
+const _ = false;
+
 describe('Cells', () => {
   /** @type {Grid} */
   let grid;
@@ -84,3 +87,130 @@ describe('Cells', () => {
     expect(grid.getCellAt(1, 1).alive).toBe(T);
   });
 });
+
+describe('Patterns', () => {
+
+  it('Blinker (period 2)', () => {
+    const grid = new Grid(5, 5);
+    grid.activateCell(2, 1);
+    grid.activateCell(2, 2);
+    grid.activateCell(2, 3);
+
+    // initial state
+    expect(grid.getGrid()).toEqual([
+      [_, _, _, _, _],
+      [_, _, _, _, _],
+      [_, M, M, M, _],
+      [_, _, _, _, _],
+      [_, _, _, _, _],
+    ]);
+
+    // first oscillation should rotate 90 degrees
+    grid.transition();
+    expect(grid.getGrid()).toEqual([
+      [_, _, _, _, _],
+      [_, _, M, _, _],
+      [_, _, M, _, _],
+      [_, _, M, _, _],
+      [_, _, _, _, _],
+    ]);
+
+    // second oscillation should rotate 90 degrees again
+    grid.transition();
+    expect(grid.getGrid()).toEqual([
+      [_, _, _, _, _],
+      [_, _, _, _, _],
+      [_, M, M, M, _],
+      [_, _, _, _, _],
+      [_, _, _, _, _],
+    ]);
+  });
+
+  it('Glider', () => {
+    const grid = new Grid(5, 5);
+    grid.activateCells([[2, 0], [3, 1], [1, 2], [2, 2], [3, 2]]);
+
+    // initial state
+    expect(grid.getGrid()).toEqual(glider[0]);
+
+    // first tick
+    grid.transition();
+    expect(grid.getGrid()).toEqual(glider[1]);
+
+    // second tick
+    grid.transition();
+    expect(grid.getGrid()).toEqual(glider[2]);
+
+    // third tick
+    grid.transition();
+    expect(grid.getGrid()).toEqual(glider[3]);
+
+    // fourth tick, should match initial state shifted right 1 and down 1
+    const shifted = Array(5);
+    for (let i = 0; i < 5; i++) shifted[i] = Array(5).fill(_);
+    for (let i = 0; i < 4; i++) {
+      for (let j = 0; j < 4; j++) {
+        shifted[i + 1][j + 1] = glider[0][i][j];
+      }
+    }
+
+    grid.transition();
+    expect(grid.getGrid()).toEqual(glider[4]);
+    expect(grid.getGrid()).toEqual(shifted);
+  });
+});
+
+/** @type {boolean[][][]} */
+const glider = [
+    [
+      [_, _, _, _, _],
+      [_, _, M, _, _],
+      [M, _, M, _, _],
+      [_, M, M, _, _],
+      [_, _, _, _, _],
+    ],
+    [
+      [_, _, _, _, _],
+      [_, M, _, _, _],
+      [_, _, M, M, _],
+      [_, M, M, _, _],
+      [_, _, _, _, _],
+    ],
+    [
+      [_, _, _, _, _],
+      [_, _, M, _, _],
+      [_, _, _, M, _],
+      [_, M, M, M, _],
+      [_, _, _, _, _],
+    ],
+    [
+      [_, _, _, _, _],
+      [_, _, _, _, _],
+      [_, M, _, M, _],
+      [_, _, M, M, _],
+      [_, _, M, _, _],
+    ],
+    [
+      [_, _, _, _, _],
+      [_, _, _, _, _],
+      [_, _, _, M, _],
+      [_, M, _, M, _],
+      [_, _, M, M, _],
+    ],
+];
+
+// leaving this here for copy/paste purposes
+const ALL_FALSE = [
+  [F, F, F, F, F],
+  [F, F, F, F, F],
+  [F, F, F, F, F],
+  [F, F, F, F, F],
+  [F, F, F, F, F],
+];
+const ALL_UNDERSCORE = [
+  [_, _, _, _, _],
+  [_, _, _, _, _],
+  [_, _, _, _, _],
+  [_, _, _, _, _],
+  [_, _, _, _, _],
+];
