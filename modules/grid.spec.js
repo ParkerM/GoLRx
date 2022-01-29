@@ -146,19 +146,40 @@ describe('Patterns', () => {
     expect(grid.getGrid()).toEqual(glider[3]);
 
     // fourth tick, should match initial state shifted right 1 and down 1
-    const shifted = Array(5);
-    for (let i = 0; i < 5; i++) shifted[i] = Array(5).fill(_);
-    for (let i = 0; i < 4; i++) {
-      for (let j = 0; j < 4; j++) {
-        shifted[i + 1][j + 1] = glider[0][i][j];
-      }
-    }
-
     grid.transition();
     expect(grid.getGrid()).toEqual(glider[4]);
-    expect(grid.getGrid()).toEqual(shifted);
+    expect(grid.getGrid()).toEqual(shiftedGrid(glider[0], 1, 1));
   });
 });
+
+/**
+ * Take a source 2D boolean array and shift it by the specified amount,
+ * filling empty spaces with false.
+ *
+ * @param source {boolean[][]} - source layout to return a shifted version of
+ * @param moveX {number} - number of steps to move left (-) or right (+)
+ * @param moveY {number} - number of steps to move up (-) or down (+)
+ * @return {boolean[][]}
+ */
+function shiftedGrid(source, moveX, moveY) {
+  const dimX = source.length;
+  const dimY = source[0].length;
+
+  const shifted = [];
+  for (let i = 0; i < dimX; i++) shifted[i] = Array(dimY).fill(false);
+
+  for (let i = 0; i < dimX; i++) {
+    const iShift = i + moveX;
+    if (iShift < 0 || iShift >= dimX) continue;
+
+    for (let j = 0; j < dimY; j++) {
+      const jShift = j + moveY;
+      if (jShift < 0 || jShift >= dimY) continue;
+      shifted[iShift][jShift] = source[i][j];
+    }
+  }
+  return shifted;
+}
 
 /** @type {boolean[][][]} */
 const glider = [
