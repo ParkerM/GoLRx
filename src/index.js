@@ -1,11 +1,10 @@
-import { Renderer } from './web/renderer.js';
+import { PixiRenderer } from './web/pixi-renderer.js';
 
 const CANVAS_ID = 'game-grid';
 
-/** @type {HTMLCanvasElement} */
-const canvas = document.getElementById(CANVAS_ID);
-const renderer = new Renderer(canvas);
+const renderer = new PixiRenderer(document);
+document.body.appendChild(renderer.nativeCanvas);
 
 // setup stage
 renderer.drawGrid();
-renderer.registerCellClickHandler();
+// renderer.registerCellClickHandler();
