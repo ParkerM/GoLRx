@@ -3,7 +3,6 @@
  * that can be started and stopped.
  */
 class Game {
-
   /** @type {Set<Cell>} */
   #cells;
 
@@ -27,9 +26,7 @@ class Game {
   /**
    * Progresses the game by one tick.
    */
-  tick() {
-
-  }
+  tick() {}
 }
 
-export {Game};
+export { Game };

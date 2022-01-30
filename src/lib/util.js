@@ -1,8 +1,8 @@
 const boolChar = (boolVal) => {
   if (boolVal === true) return '#';
   if (boolVal === false) return '.';
-  else return '?'
-}
+  else return '?';
+};
 
 /**
  * @template C
@@ -13,9 +13,9 @@ const boolChar = (boolVal) => {
 function formatGrid(subGrid, transform = (c) => c) {
   let out = '---';
   out += '-'.repeat(subGrid.length * 2) + '\n';
-  subGrid.forEach(row => {
+  subGrid.forEach((row) => {
     out += '| ';
-    out += row.map(cell => boolChar(transform(cell))).join(' ');
+    out += row.map((cell) => boolChar(transform(cell))).join(' ');
     out += ' |\n';
   });
   out += '---';
@@ -25,7 +25,7 @@ function formatGrid(subGrid, transform = (c) => c) {
 
 /** @param subGrid {Array<Array<Cell>>} */
 function printGrid(subGrid) {
-  console.log(formatGrid(subGrid, c => c.alive));
+  console.log(formatGrid(subGrid, (c) => c.alive));
 }
 
 /**
@@ -34,6 +34,6 @@ function printGrid(subGrid) {
  * @param b {Array<T>} second array
  * @return {Array<Array<T>>} all possible pairs from the input arrays
  */
-const allPairs = (a, b) => a.flatMap(x => b.map(y => [x, y]));
+const allPairs = (a, b) => a.flatMap((x) => b.map((y) => [x, y]));
 
-export {formatGrid, printGrid, allPairs};
+export { formatGrid, printGrid, allPairs };

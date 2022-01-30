@@ -1,4 +1,4 @@
-import {Grid} from "./grid.js";
+import { Grid } from './grid.js';
 
 const T = true;
 const F = false;
@@ -20,13 +20,13 @@ describe('Cells', () => {
       [F, F, F],
       [F, T, F],
       [F, F, F],
-    ])
+    ]);
     grid.transition();
     expect(grid.getGrid()).toEqual([
       [F, F, F],
       [F, F, F],
       [F, F, F],
-    ])
+    ]);
     expect(grid.getCellAt(1, 1).alive).toBe(false);
   });
 
@@ -89,7 +89,6 @@ describe('Cells', () => {
 });
 
 describe('Patterns', () => {
-
   it('Blinker (period 2)', () => {
     const grid = new Grid(5, 5);
     grid.activateCell(2, 1);
@@ -128,7 +127,13 @@ describe('Patterns', () => {
 
   it('Glider', () => {
     const grid = new Grid(5, 5);
-    grid.activateCells([[2, 0], [3, 1], [1, 2], [2, 2], [3, 2]]);
+    grid.activateCells([
+      [2, 0],
+      [3, 1],
+      [1, 2],
+      [2, 2],
+      [3, 2],
+    ]);
 
     // initial state
     expect(grid.getGrid()).toEqual(glider[0]);
@@ -183,41 +188,41 @@ function shiftedGrid(source, moveX, moveY) {
 
 /** @type {boolean[][][]} */
 const glider = [
-    [
-      [_, _, _, _, _],
-      [_, _, M, _, _],
-      [M, _, M, _, _],
-      [_, M, M, _, _],
-      [_, _, _, _, _],
-    ],
-    [
-      [_, _, _, _, _],
-      [_, M, _, _, _],
-      [_, _, M, M, _],
-      [_, M, M, _, _],
-      [_, _, _, _, _],
-    ],
-    [
-      [_, _, _, _, _],
-      [_, _, M, _, _],
-      [_, _, _, M, _],
-      [_, M, M, M, _],
-      [_, _, _, _, _],
-    ],
-    [
-      [_, _, _, _, _],
-      [_, _, _, _, _],
-      [_, M, _, M, _],
-      [_, _, M, M, _],
-      [_, _, M, _, _],
-    ],
-    [
-      [_, _, _, _, _],
-      [_, _, _, _, _],
-      [_, _, _, M, _],
-      [_, M, _, M, _],
-      [_, _, M, M, _],
-    ],
+  [
+    [_, _, _, _, _],
+    [_, _, M, _, _],
+    [M, _, M, _, _],
+    [_, M, M, _, _],
+    [_, _, _, _, _],
+  ],
+  [
+    [_, _, _, _, _],
+    [_, M, _, _, _],
+    [_, _, M, M, _],
+    [_, M, M, _, _],
+    [_, _, _, _, _],
+  ],
+  [
+    [_, _, _, _, _],
+    [_, _, M, _, _],
+    [_, _, _, M, _],
+    [_, M, M, M, _],
+    [_, _, _, _, _],
+  ],
+  [
+    [_, _, _, _, _],
+    [_, _, _, _, _],
+    [_, M, _, M, _],
+    [_, _, M, M, _],
+    [_, _, M, _, _],
+  ],
+  [
+    [_, _, _, _, _],
+    [_, _, _, _, _],
+    [_, _, _, M, _],
+    [_, M, _, M, _],
+    [_, _, M, M, _],
+  ],
 ];
 
 // leaving this here for copy/paste purposes

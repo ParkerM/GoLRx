@@ -2,7 +2,6 @@
  * Wrapper class abstraction for anything related to drawing in the viewport.
  */
 class Renderer {
-
   #canvas;
 
   /**
@@ -51,4 +50,4 @@ class Renderer {
   }
 }
 
-export {Renderer};
+export { Renderer };

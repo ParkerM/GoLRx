@@ -1,5 +1,5 @@
-import {Game} from "./game.js";
-import {Cell, Grid} from "./grid.js";
+import { Game } from './game.js';
+import { Cell, Grid } from './grid.js';
 
 describe('Game', () => {
   it('should initialize grid with seed', () => {
@@ -8,6 +8,6 @@ describe('Game', () => {
 
     const game = new Game(grid, seed);
 
-    expect(game.cells).toContain({x: 1, y: 2});
+    expect(game.cells).toContain({ x: 1, y: 2 });
   });
 });

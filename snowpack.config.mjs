@@ -4,8 +4,8 @@
 /** @type {import("snowpack").SnowpackUserConfig } */
 const snowpackUserConfig = {
   mount: {
-    public: {url: '/', static: true},
-    src: {url: '/dist'},
+    public: { url: '/', static: true },
+    src: { url: '/dist' },
   },
   plugins: [
     /* ... */
@@ -19,7 +19,7 @@ const snowpackUserConfig = {
   buildOptions: {
     /* ... */
   },
-}
+};
 
 // noinspection JSUnusedGlobalSymbols
 export default snowpackUserConfig;

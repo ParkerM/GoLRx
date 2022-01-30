@@ -1,8 +1,16 @@
-import {map, Observable, of, sample, Subject, Subscription, switchMap, zip} from "rxjs";
-import {allPairs} from "./util.js";
+import {
+  map,
+  Observable,
+  of,
+  sample,
+  Subject,
+  Subscription,
+  switchMap,
+  zip,
+} from 'rxjs';
+import { allPairs } from './util.js';
 
 class Grid {
-
   /**
    * Dummy cell to represent oob
    * @type {Cell}
@@ -38,7 +46,11 @@ class Grid {
    * @param {number} height - Height of grid (integer)
    */
   constructor(width, height) {
-    this.#oobCell = new Cell(null, Number.NEGATIVE_INFINITY, Number.NEGATIVE_INFINITY);
+    this.#oobCell = new Cell(
+      null,
+      Number.NEGATIVE_INFINITY,
+      Number.NEGATIVE_INFINITY,
+    );
     this.xLen = width;
     this.yLen = height;
     this.#initPlane();
@@ -75,7 +87,7 @@ class Grid {
    * @param {[number, number][]} coords - [x,y] pairs
    */
   activateCells(coords) {
-    coords.forEach(([x, y]) => this.getCellAt(x, y).alive = true);
+    coords.forEach(([x, y]) => (this.getCellAt(x, y).alive = true));
   }
 
   /**
@@ -92,7 +104,7 @@ class Grid {
    * @returns {boolean[][]} - A grid of live (true) and dead (false) cells
    */
   getGrid() {
-    return this.#plane.map(row => row.map(cell => cell.alive));
+    return this.#plane.map((row) => row.map((cell) => cell.alive));
   }
 
   /**
@@ -103,10 +115,7 @@ class Grid {
    * @return {boolean}
    */
   #insideBounds = ([x, y]) =>
-      x >= 0 &&
-      y >= 0 &&
-      x < this.xLen &&
-      y < this.yLen;
+    x >= 0 && y >= 0 && x < this.xLen && y < this.yLen;
 
   /**
    * Gets cells immediately adjacent to the given coordinates, excluding any
@@ -118,19 +127,19 @@ class Grid {
    */
   #getAdjacentCells(xPos, yPos) {
     const neighborCells = [
-        [-1 + xPos, -1 + yPos],
-        [ 0 + xPos, -1 + yPos],
-        [ 1 + xPos, -1 + yPos],
-        [-1 + xPos,  0 + yPos],
-        [ 1 + xPos,  0 + yPos],
-        [-1 + xPos,  1 + yPos],
-        [ 0 + xPos,  1 + yPos],
-        [ 1 + xPos,  1 + yPos],
+      [-1 + xPos, -1 + yPos],
+      [0 + xPos, -1 + yPos],
+      [1 + xPos, -1 + yPos],
+      [-1 + xPos, 0 + yPos],
+      [1 + xPos, 0 + yPos],
+      [-1 + xPos, 1 + yPos],
+      [0 + xPos, 1 + yPos],
+      [1 + xPos, 1 + yPos],
     ];
 
     return neighborCells
-        .filter(this.#insideBounds)
-        .map(([x, y]) => this.getCellAt(x, y));
+      .filter(this.#insideBounds)
+      .map(([x, y]) => this.getCellAt(x, y));
   }
 
   transition() {
@@ -145,8 +154,8 @@ class Grid {
    * @returns {Array<[number, number]>} all coordinate pairs on the grid
    */
   #coordinatePairs() {
-    const xRange = Array.from({length: this.xLen}, (v, k) => k);
-    const yRange = Array.from({length: this.yLen}, (v, k) => k);
+    const xRange = Array.from({ length: this.xLen }, (v, k) => k);
+    const yRange = Array.from({ length: this.yLen }, (v, k) => k);
     return allPairs(xRange, yRange);
   }
 
@@ -156,11 +165,15 @@ class Grid {
    */
   #introduceNeighbors() {
     return this.#coordinatePairs()
-        .map(([x, y]) => [x, y, this.getCellAt(x, y)])
-        .map(([x, y, cell]) =>
-            cell.listenToNeighbors(this.#getAdjacentCells(x, y).map(c => c.neighborNotifier.asObservable()))
-        )
-        .forEach(subscription => this.subscriptions.add(subscription));
+      .map(([x, y]) => [x, y, this.getCellAt(x, y)])
+      .map(([x, y, cell]) =>
+        cell.listenToNeighbors(
+          this.#getAdjacentCells(x, y).map((c) =>
+            c.neighborNotifier.asObservable(),
+          ),
+        ),
+      )
+      .forEach((subscription) => this.subscriptions.add(subscription));
   }
 
   /**
@@ -168,13 +181,12 @@ class Grid {
    */
   #broadcastStart() {
     this.#coordinatePairs()
-        .map(([x, y]) => this.getCellAt(x, y))
-        .forEach(cell => cell.start());
+      .map(([x, y]) => this.getCellAt(x, y))
+      .forEach((cell) => cell.start());
   }
 }
 
 class Cell {
-
   /**
    * Subject used to notify neighbors of current state
    * @type {Subject<boolean>}
@@ -255,15 +267,18 @@ class Cell {
    * @return {Subscription}
    */
   listenToNeighbors(notifiers) {
-    return zip(notifiers).pipe(
+    return zip(notifiers)
+      .pipe(
         sample(this.#ticker),
-        map(bools => bools.filter(b => !!b).length),
-        switchMap(neighborCount => this.#updateState(neighborCount)),
-    ).subscribe({
-      next: state => this.neighborNotifier.next(state),
-      error: err => console.error(`Error in cell ${this.#posX},${this.#posY}: ${err}`),
-    });
+        map((bools) => bools.filter((b) => !!b).length),
+        switchMap((neighborCount) => this.#updateState(neighborCount)),
+      )
+      .subscribe({
+        next: (state) => this.neighborNotifier.next(state),
+        error: (err) =>
+          console.error(`Error in cell ${this.#posX},${this.#posY}: ${err}`),
+      });
   }
 }
 
-export {Cell, Grid};
+export { Cell, Grid };
