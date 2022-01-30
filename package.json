@@ -15,7 +15,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "paper": "^0.12.15",
+    "pixi.js": "^6.2.2",
     "rxjs": "^7.5.2"
   },
   "devDependencies": {
