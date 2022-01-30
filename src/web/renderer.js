@@ -1,52 +1,56 @@
+import Paper from 'paper/dist/paper-core';
+
+const CELL_SIZE = 20;
+
 /**
  * Wrapper class abstraction for anything related to drawing in the viewport.
  */
 class Renderer {
-  #canvas;
+  /** @type {HTMLCanvasElement} */
+  canvas;
+
+  /** @type {PaperScope} */
+  #paper;
 
   /**
    * @param canvas {HTMLCanvasElement}
    */
   constructor(canvas) {
-    // this.#canvas = new fabric.Canvas(canvas, {
-    //   height: 500,
-    //   width: 500,
-    //   backgroundColor: 'white',
-    //   selection: false,
-    // });
-  }
-
-  drawRect() {
-    // const rect = new fabric.Rect({
-    //   left: 100,
-    //   top: 100,
-    //   fill: 'red',
-    //   width: 20,
-    //   height: 20,
-    //   angle: 45,
-    // });
-    //
-    // this.#canvas.add(rect);
-    //
-    // rect.set({left: 20, top: 50});
-    // this.#canvas.renderAll();
-    //
-    // const circle = new fabric.Circle({
-    //   radius: 20, fill: 'green', left: 100, top: 100
-    // });
-    // const triangle = new fabric.Triangle({
-    //   width: 20, height: 30, fill: 'blue', left: 50, top: 50
-    // });
-    // this.#canvas.add(circle, triangle);
-  }
-
-  drawGridLines() {
-    // const line = new fabric.Line([])
+    this.canvas = canvas;
+    this.#paper = new Paper.PaperScope();
+    this.#paper.setup(canvas);
   }
 
   /** @returns {HTMLCanvasElement} */
   get nativeCanvas() {
-    return this.#canvas;
+    return this.canvas;
+  }
+
+  drawGrid() {
+    const boundingRect = this.#paper.view.bounds;
+    const hCellsNum = boundingRect.width / CELL_SIZE;
+    const vCellsNum = boundingRect.height / CELL_SIZE;
+
+    for (let i = 0; i <= hCellsNum; i++) {
+      const offsetXPos = Math.ceil(boundingRect.left / CELL_SIZE) * CELL_SIZE;
+      const xPos = (offsetXPos + i) * CELL_SIZE;
+      const topPoint = new this.#paper.Point(xPos, boundingRect.top);
+      const bottomPoint = new this.#paper.Point(xPos, boundingRect.bottom);
+      const line = new this.#paper.Path.Line(topPoint, bottomPoint);
+
+      line.strokeColor = new this.#paper.Color('#968d8d');
+      line.strokeWidth = 1 / this.#paper.view.zoom;
+    }
+
+    for (let i = 0; i <= vCellsNum; i++) {
+      const offsetYPos = Math.ceil(boundingRect.top / CELL_SIZE) * CELL_SIZE;
+      const yPos = (offsetYPos + i) * CELL_SIZE;
+      const leftPoint = new this.#paper.Point(boundingRect.left, yPos);
+      const rightPoint = new this.#paper.Point(boundingRect.right, yPos);
+      const line = new this.#paper.Path.Line(leftPoint, rightPoint);
+
+      line.strokeColor = new this.#paper.Color('#968d8d');
+    }
   }
 }
 
