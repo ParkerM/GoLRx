@@ -2,9 +2,11 @@
   "name": "jsgol",
   "version": "1.0.0",
   "description": "",
-  "main": "index.mjs",
+  "main": "src/index.mjs",
   "type": "module",
   "scripts": {
+    "start": "snowpack dev",
+    "build": "snowpack build",
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js"
   },
   "keywords": [],
@@ -15,6 +17,7 @@
   },
   "devDependencies": {
     "jest": "^27.4.7",
-    "rxjs": "^7.5.2"
+    "rxjs": "^7.5.2",
+    "snowpack": "^3.8.8"
   }
 }
