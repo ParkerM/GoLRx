@@ -1,4 +1,4 @@
-import {Grid} from "./grid";
+import {Grid} from "./grid.js";
 
 const T = true;
 const F = false;

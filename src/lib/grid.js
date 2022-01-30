@@ -1,5 +1,5 @@
 import {map, Observable, of, sample, Subject, Subscription, switchMap, zip} from "rxjs";
-import {allPairs} from "./util";
+import {allPairs} from "./util.js";
 
 class Grid {
 

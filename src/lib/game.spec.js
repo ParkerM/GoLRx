@@ -1,5 +1,5 @@
-import {Game} from "./game";
-import {Cell, Grid} from "./grid";
+import {Game} from "./game.js";
+import {Cell, Grid} from "./grid.js";
 
 describe('Game', () => {
   it('should initialize grid with seed', () => {
