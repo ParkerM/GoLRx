@@ -8,7 +8,7 @@ const CELL_PADDING = 5;
 
 const ALPHA_SELECTED = 1;
 const ALPHA_HOVER = 0.5;
-const ALPHA_MAP = 0.1;
+const ALPHA_CELL = 0.1;
 
 /** The length of a cell edge after applying padding. */
 const CELL_SIZE_PADDED = CELL_SIZE - CELL_PADDING;
@@ -22,6 +22,9 @@ class PixiRenderer {
 
   /** @type {import('@pixi/display').Container} */
   #gridContainer;
+
+  /** @type {import('@pixi/graphics').Graphics[][]} */
+  #cells;
 
   /**
    * Application width.
@@ -74,7 +77,10 @@ class PixiRenderer {
     const vCellsNum = this.#height / CELL_SIZE;
     console.log(`width=${this.#width}, height=${this.#height}, cells horizontal=${hCellsNum}, cells vertical=${vCellsNum}`);
 
+    const cells = [];
+
     for (let i = 0; i < (this.#height - CELL_PADDING) / CELL_SIZE; i++) {
+      cells.push([]);
       for (let j = 0; j < (this.#width - CELL_PADDING) / CELL_SIZE; j++) {
         const xPos = CELL_SIZE * j;
         const yPos = CELL_SIZE * i;
@@ -86,14 +92,16 @@ class PixiRenderer {
             CELL_SIZE_PADDED,
             CELL_SIZE_PADDED,
           )
-          .on('mousedown', selectFixture)
+          .on('mousedown', (ev) => this.selectCell(ev, i, j))
           .on('mouseover', hoverOver)
           .on('mouseout', hoverOut);
         graphics.interactive = true;
         graphics.buttonMode = true;
-        graphics.alpha = ALPHA_MAP;
-        graphics.id = 1 + i * j;
-        this.#gridContainer.addChild(graphics);
+        graphics.alpha = ALPHA_CELL;
+        graphics.id = `${i},${j}`;
+        graphics.cellX = i;
+        graphics.cellY = j;
+        cells[i][j] = this.#gridContainer.addChild(graphics);
 
         let text = new PIXI.Text(`${i},${j}`, {
           fontFamily: 'Arial',
@@ -106,21 +114,7 @@ class PixiRenderer {
         this.#gridContainer.addChild(text);
       }
 
-      this.#rootContainer.addChild(this.#gridContainer);
-    }
-
-    /**
-     * @param event {import('@pixi/interaction').InteractionEvent}
-     */
-    function selectFixture(event) {
-      const target = event.target;
-      if (target.alpha !== ALPHA_SELECTED) {
-        target.isSelected = true;
-        target.alpha = ALPHA_SELECTED;
-      } else {
-        target.isSelected = false;
-        target.alpha = ALPHA_MAP;
-      }
+      this.#cells = cells;
     }
 
     /**
@@ -141,9 +135,30 @@ class PixiRenderer {
     function hoverOut(event, displayObject) {
       if (!displayObject) return;
       if (displayObject.alpha !== ALPHA_SELECTED) {
-        displayObject.alpha = ALPHA_MAP;
+        displayObject.alpha = ALPHA_CELL;
       }
     }
+  }
+
+  /**
+   * @param event {import('@pixi/interaction').InteractionEvent}
+   * @param x {number} - the relative x coordinate of this cell in the grid
+   * @param y {number} - the relative y coordinate of this cell in the grid
+   */
+  selectCell(event, x, y) {
+    const target = event.target;
+    if (target.alpha !== ALPHA_SELECTED) {
+      target.isSelected = true;
+      target.alpha = ALPHA_SELECTED;
+    } else {
+      target.isSelected = false;
+      target.alpha = ALPHA_CELL;
+    }
+    console.log(`Click at ${x},${y}.`);
+    console.log(`Known cell: ${this.#cells[x][y].id}`);
+    // console.log(`Maps to cell ${this.positionToGridCoords(target.position)}`);
+    console.log(event);
+    console.log(this);
   }
 }
 
