@@ -6,5 +6,6 @@ const CANVAS_ID = 'game-grid';
 const canvas = document.getElementById(CANVAS_ID);
 const renderer = new Renderer(canvas);
 
-// draw grid
+// setup stage
 renderer.drawGrid();
+renderer.registerCellClickHandler();
