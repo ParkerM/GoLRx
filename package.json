@@ -15,12 +15,12 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "paper": "^0.12.15"
+    "paper": "^0.12.15",
+    "rxjs": "^7.5.2"
   },
   "devDependencies": {
     "jest": "^27.4.7",
     "prettier": "^2.5.1",
-    "rxjs": "^7.5.2",
     "snowpack": "^3.8.8"
   }
 }
