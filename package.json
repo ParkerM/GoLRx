@@ -2,7 +2,7 @@
   "name": "jsgol",
   "version": "1.0.0",
   "description": "",
-  "main": "src/index.mjs",
+  "main": "src/index.js",
   "type": "module",
   "scripts": {
     "start": "snowpack dev",
