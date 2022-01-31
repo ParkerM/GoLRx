@@ -1,10 +1,44 @@
-import { Grid } from './grid.js';
+import { CHANGE_EMITTER, Grid } from './grid.js';
 
 const T = true;
 const F = false;
 
 const M = true;
 const _ = false;
+
+describe('Grid', () => {
+  /** @type {Grid} */
+  let grid;
+
+  beforeEach(() => {
+    grid = new Grid(3, 3);
+  });
+
+  it('emits all changed cells after transition', (done) => {
+    grid.activateCell(1, 1);
+
+    expect.assertions(3);
+    expect(grid.getGrid()).toEqual([
+      [F, F, F],
+      [F, T, F],
+      [F, F, F],
+    ]);
+
+    CHANGE_EMITTER.asObservable().subscribe({
+      next: (change) => {
+        expect(change).toEqual([1, 1, false]);
+        done();
+      },
+    });
+
+    grid.transition();
+    expect(grid.getGrid()).toEqual([
+      [F, F, F],
+      [F, F, F],
+      [F, F, F],
+    ]);
+  });
+});
 
 describe('Cells', () => {
   /** @type {Grid} */
@@ -225,7 +259,10 @@ const glider = [
   ],
 ];
 
-// leaving this here for copy/paste purposes
+/*
+ * Leaving these here for copy/paste purposes
+ */
+// noinspection JSUnusedLocalSymbols
 const ALL_FALSE = [
   [F, F, F, F, F],
   [F, F, F, F, F],
@@ -233,6 +270,7 @@ const ALL_FALSE = [
   [F, F, F, F, F],
   [F, F, F, F, F],
 ];
+// noinspection JSUnusedLocalSymbols
 const ALL_UNDERSCORE = [
   [_, _, _, _, _],
   [_, _, _, _, _],

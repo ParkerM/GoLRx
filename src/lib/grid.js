@@ -10,6 +10,9 @@ import {
 } from 'rxjs';
 import { allPairs } from './util.js';
 
+/** @type {Subject<[number, number, boolean]>} */
+const CHANGE_EMITTER = new Subject();
+
 class Grid {
   /**
    * Dummy cell to represent oob
@@ -69,10 +72,20 @@ class Grid {
   }
 
   /**
-   * Progress the game by 1 step.
+   * Attaches each cell's notifier to its neighbors' listeners.
+   * Each cell's subscription is stored in {@link subscriptions}.
    */
-  tick() {
-    this.notifier.next(void 0);
+  #introduceNeighbors() {
+    return this.#coordinatePairs()
+      .map(([x, y]) => [x, y, this.getCellAt(x, y)])
+      .map(([x, y, cell]) =>
+        cell.listenToNeighbors(
+          this.#getAdjacentCells(x, y).map((c) =>
+            c.neighborNotifier.asObservable(),
+          ),
+        ),
+      )
+      .forEach((subscription) => this.subscriptions.add(subscription));
   }
 
   /**
@@ -88,6 +101,15 @@ class Grid {
    */
   activateCells(coords) {
     coords.forEach(([x, y]) => (this.getCellAt(x, y).alive = true));
+  }
+
+  /**
+   * @param {number} x
+   * @param {number} y
+   * @param state {boolean} - whether the cell is alive or dead.
+   */
+  setCellState(x, y, state) {
+    this.getCellAt(x, y).alive = state;
   }
 
   /**
@@ -160,29 +182,17 @@ class Grid {
   }
 
   /**
-   * Attaches each cell's notifier to its neighbors' listeners.
-   * Each cell's subscription is stored in {@link subscriptions}.
-   */
-  #introduceNeighbors() {
-    return this.#coordinatePairs()
-      .map(([x, y]) => [x, y, this.getCellAt(x, y)])
-      .map(([x, y, cell]) =>
-        cell.listenToNeighbors(
-          this.#getAdjacentCells(x, y).map((c) =>
-            c.neighborNotifier.asObservable(),
-          ),
-        ),
-      )
-      .forEach((subscription) => this.subscriptions.add(subscription));
-  }
-
-  /**
    * Kicks off the first notification for each cell.
    */
   #broadcastStart() {
-    this.#coordinatePairs()
-      .map(([x, y]) => this.getCellAt(x, y))
-      .forEach((cell) => cell.start());
+    this.allCells.forEach((cell) => cell.start());
+  }
+
+  /**
+   * @returns {Cell[]} - all cells on the grid.
+   */
+  get allCells() {
+    return this.#coordinatePairs().map(([x, y]) => this.getCellAt(x, y));
   }
 }
 
@@ -243,12 +253,18 @@ class Cell {
 
   /**
    * Updates this cell's state and returns it wrapped in an observable.
+   * Also publishes coords and state in the event of a change.
    *
    * @param livingNeighborCount {number}
    * @return {Observable<boolean>}
    */
   #updateState(livingNeighborCount) {
+    const prev = this.alive;
     this.alive = this.#nextState(livingNeighborCount);
+
+    if (prev !== this.alive) {
+      CHANGE_EMITTER.next([this.#posX, this.#posY, this.alive]);
+    }
     return of(this.alive);
   }
 
@@ -281,4 +297,4 @@ class Cell {
   }
 }
 
-export { Cell, Grid };
+export { Cell, Grid, CHANGE_EMITTER };
