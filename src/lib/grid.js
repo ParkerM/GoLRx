@@ -110,6 +110,7 @@ class Grid {
    */
   setCellState(x, y, state) {
     this.getCellAt(x, y).alive = state;
+    console.log(`Cell ${x},${y} now has state ${this.getCellAt(x, y).alive}`);
   }
 
   /**

@@ -1,4 +1,5 @@
 import * as PIXI from 'pixi.js';
+import { Subject } from 'rxjs';
 
 const BG_COLOR = 0xcccccc;
 const CELL_COLOR = 0xffffff;
@@ -39,6 +40,12 @@ class PixiRenderer {
   #height;
 
   /**
+   * Subject that emits [x, y, isActive] when a cell is clicked.
+   * @type {Subject<[number, number, boolean]>}
+   */
+  cellToggled = new Subject();
+
+  /**
    *
    * @param doc {Document} - enclosing document
    * @param width {number} - desired app width
@@ -54,9 +61,6 @@ class PixiRenderer {
       resolution: doc.defaultView.devicePixelRatio || 1,
     });
 
-    // fix mouseout events not having a target
-    // this.#app.renderer.plugins.interaction.moveWhenInside = true;
-
     this.#rootContainer = new PIXI.Container();
     this.#rootContainer.width = width;
     this.#rootContainer.height = height;
@@ -70,7 +74,6 @@ class PixiRenderer {
 
   /**
    * Draws a grid of cells to a child grid container.
-   * @param {PixiRenderer} thisArg - reference to this PixiRenderer instance
    * @returns {[number, number]} - [cellsWide, cellsHigh] of the resulting grid.
    */
   drawGrid() {
@@ -151,8 +154,10 @@ class PixiRenderer {
     const target = event.target;
     if (target.alpha !== ALPHA_SELECTED) {
       this.#activateCell(target);
+      this.cellToggled.next([x, y, true]);
     } else {
       this.#deactivateCell(target);
+      this.cellToggled.next([x, y, false]);
     }
     console.log(`Click at ${x},${y}.`);
     console.log(event);
@@ -170,6 +175,18 @@ class PixiRenderer {
   #deactivateCell(target) {
     target.isSelected = false;
     target.alpha = ALPHA_CELL;
+  }
+
+  /**
+   * Manually sets the toggled state of a visible cell.
+   * @param x {number} - x pos of this cell in the grid
+   * @param y {number} - y pos of this cell in the grid
+   * @param state {boolean}
+   */
+  setCellState(x, y, state) {
+    console.log(`Setting cell state at ${x},${y} to ${state}`);
+    if (!!state) this.#activateCell(this.#cells[x][y]);
+    else this.#deactivateCell(this.#cells[x][y]);
   }
 }
 
