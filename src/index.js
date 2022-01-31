@@ -1,7 +1,7 @@
 import { PixiRenderer } from './web/pixi-renderer.js';
 import { Game } from './lib/game.js';
 import { CHANGE_EMITTER, Grid } from './lib/grid.js';
-import { formatGrid, printGrid } from './lib/util.js';
+import { formatGrid } from './lib/util.js';
 
 // Create renderer and add to document
 const renderer = new PixiRenderer(document);
@@ -20,10 +20,21 @@ btnStart.addEventListener('click', startButtonListener);
 const btnTick = document.getElementById('btnTick');
 btnTick.addEventListener('click', doTick);
 
-// create grid and game
+// create grid
 const grid = new Grid(xLen, yLen);
+// load game
 const game = new Game(grid, renderer.cellToggled);
 
+// load preset
+const glider = [
+  [0, 2],
+  [1, 3],
+  [2, 1],
+  [2, 2],
+  [2, 3],
+];
+grid.activateCells(glider);
+glider.forEach(([x, y]) => renderer.setCellState(x, y, true));
 console.log(formatGrid(grid.getGrid()));
 
 // Listen for state changes and update view as needed
