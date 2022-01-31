@@ -201,11 +201,25 @@ describe('Patterns', () => {
  * @return {boolean[][]}
  */
 function shiftedGrid(source, moveX, moveY) {
-  const dimX = source.length;
-  const dimY = source[0].length;
+  return translate2dArray(source, moveX, moveY, false);
+}
+
+/**
+ * Creates a translated copy of a 2D array.
+ *
+ * @template T
+ * @param arr {T[][]} - 2D source array
+ * @param moveX {number} - number of steps to move left (-) or right (+)
+ * @param moveY {number} - number of steps to move up (-) or down (+)
+ * @param fill {T} - default value for abyss
+ * @return {T[][]}
+ */
+function translate2dArray(arr, moveX, moveY, fill) {
+  const dimX = arr.length;
+  const dimY = arr[0].length;
 
   const shifted = [];
-  for (let i = 0; i < dimX; i++) shifted[i] = Array(dimY).fill(false);
+  for (let i = 0; i < dimX; i++) shifted[i] = Array(dimY).fill(fill);
 
   for (let i = 0; i < dimX; i++) {
     const iShift = i + moveX;
@@ -214,7 +228,7 @@ function shiftedGrid(source, moveX, moveY) {
     for (let j = 0; j < dimY; j++) {
       const jShift = j + moveY;
       if (jShift < 0 || jShift >= dimY) continue;
-      shifted[iShift][jShift] = source[i][j];
+      shifted[iShift][jShift] = arr[i][j];
     }
   }
   return shifted;
