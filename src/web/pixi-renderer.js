@@ -24,7 +24,7 @@ class PixiRenderer {
   #gridContainer;
 
   /** @type {import('@pixi/graphics').Graphics[][]} */
-  #cells;
+  #cells = [];
 
   /**
    * Application width.
@@ -55,7 +55,7 @@ class PixiRenderer {
     });
 
     // fix mouseout events not having a target
-    this.#app.renderer.plugins.interaction.moveWhenInside = true;
+    // this.#app.renderer.plugins.interaction.moveWhenInside = true;
 
     this.#rootContainer = new PIXI.Container();
     this.#rootContainer.width = width;
@@ -68,6 +68,11 @@ class PixiRenderer {
     return this.#app.view;
   }
 
+  /**
+   * Draws a grid of cells to a child grid container.
+   * @param {PixiRenderer} thisArg - reference to this PixiRenderer instance
+   * @returns {[number, number]} - [cellsWide, cellsHigh] of the resulting grid.
+   */
   drawGrid() {
     this.#gridContainer = this.#rootContainer.addChild(new PIXI.Container());
     this.#gridContainer.position.x = CELL_PADDING + (CELL_PADDING / 2);
@@ -75,15 +80,14 @@ class PixiRenderer {
 
     const hCellsNum = this.#width / CELL_SIZE;
     const vCellsNum = this.#height / CELL_SIZE;
-    console.log(`width=${this.#width}, height=${this.#height}, cells horizontal=${hCellsNum}, cells vertical=${vCellsNum}`);
 
-    const cells = [];
-
-    for (let i = 0; i < (this.#height - CELL_PADDING) / CELL_SIZE; i++) {
-      cells.push([]);
-      for (let j = 0; j < (this.#width - CELL_PADDING) / CELL_SIZE; j++) {
-        const xPos = CELL_SIZE * j;
-        const yPos = CELL_SIZE * i;
+    let vCells = (this.#height - CELL_PADDING) / CELL_SIZE;
+    let hCells = (this.#width - CELL_PADDING) / CELL_SIZE;
+    for (let x = 0; x < hCells; x++) {
+      this.#cells[x] = [];
+      for (let y = 0; y < vCells; y++) {
+        const xPos = CELL_SIZE * x;
+        const yPos = CELL_SIZE * y;
         const graphics = new PIXI.Graphics()
           .beginFill(CELL_COLOR)
           .drawRect(
@@ -92,18 +96,17 @@ class PixiRenderer {
             CELL_SIZE_PADDED,
             CELL_SIZE_PADDED,
           )
-          .on('mousedown', (ev) => this.selectCell(ev, i, j))
-          .on('mouseover', hoverOver)
-          .on('mouseout', hoverOut);
+          .on('mousedown', (ev) => this.selectCell(ev, x, y))
+          .on('mouseover', (ev) => this.hoverOver(ev));
         graphics.interactive = true;
         graphics.buttonMode = true;
         graphics.alpha = ALPHA_CELL;
-        graphics.id = `${i},${j}`;
-        graphics.cellX = i;
-        graphics.cellY = j;
-        cells[i][j] = this.#gridContainer.addChild(graphics);
+        graphics.id = `${x},${y}`;
+        graphics.cellX = x;
+        graphics.cellY = y;
+        this.#cells[x].push(this.#gridContainer.addChild(graphics));
 
-        let text = new PIXI.Text(`${i},${j}`, {
+        let text = new PIXI.Text(`${x},${y}`, {
           fontFamily: 'Arial',
           fontSize: CELL_SIZE / 2.5,
           fill: 0x000000,
@@ -113,30 +116,29 @@ class PixiRenderer {
         text.position.y = yPos;
         this.#gridContainer.addChild(text);
       }
-
-      this.#cells = cells;
     }
+    return [hCellsNum, vCellsNum];
+  }
 
-    /**
-     * @param event {import('@pixi/interaction').InteractionEvent}
-     */
-    function hoverOver(event) {
-      const target = event.target;
-      if (target.alpha !== ALPHA_SELECTED) {
-        target.alpha = ALPHA_HOVER;
-        target.once('mouseout', (ev) => hoverOut(ev, target));
-      }
+  /**
+   * @param event {import('@pixi/interaction').InteractionEvent}
+   */
+  hoverOver(event) {
+    const target = event.target;
+    if (target.alpha !== ALPHA_SELECTED) {
+      target.alpha = ALPHA_HOVER;
+      target.once('mouseout', (ev) => this.hoverOut(ev, target));
     }
+  }
 
-    /**
-     * @param event {import('@pixi/interaction').InteractionEvent}
-     * @param displayObject {import('@pixi/display').DisplayObject}
-     */
-    function hoverOut(event, displayObject) {
-      if (!displayObject) return;
-      if (displayObject.alpha !== ALPHA_SELECTED) {
-        displayObject.alpha = ALPHA_CELL;
-      }
+  /**
+   * @param event {import('@pixi/interaction').InteractionEvent}
+   * @param displayObject {import('@pixi/display').DisplayObject}
+   */
+  hoverOut(event, displayObject) {
+    if (!displayObject) return;
+    if (displayObject.alpha !== ALPHA_SELECTED) {
+      displayObject.alpha = ALPHA_CELL;
     }
   }
 
@@ -148,17 +150,26 @@ class PixiRenderer {
   selectCell(event, x, y) {
     const target = event.target;
     if (target.alpha !== ALPHA_SELECTED) {
-      target.isSelected = true;
-      target.alpha = ALPHA_SELECTED;
+      this.#activateCell(target);
     } else {
-      target.isSelected = false;
-      target.alpha = ALPHA_CELL;
+      this.#deactivateCell(target);
     }
     console.log(`Click at ${x},${y}.`);
-    console.log(`Known cell: ${this.#cells[x][y].id}`);
-    // console.log(`Maps to cell ${this.positionToGridCoords(target.position)}`);
     console.log(event);
     console.log(this);
+    console.log(`Known cell: ${this.#cells[x][y].id}`);
+  }
+
+  /** @param target {import('@pixi/display').DisplayObject} */
+  #activateCell(target) {
+    target.isSelected = true;
+    target.alpha = ALPHA_SELECTED;
+  }
+
+  /** @param target {import('@pixi/display').DisplayObject} */
+  #deactivateCell(target) {
+    target.isSelected = false;
+    target.alpha = ALPHA_CELL;
   }
 }
 

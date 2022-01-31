@@ -1,10 +1,13 @@
 import { PixiRenderer } from './web/pixi-renderer.js';
-
-const CANVAS_ID = 'game-grid';
+import { Game } from './lib/game.js';
 
 const renderer = new PixiRenderer(document);
 document.body.appendChild(renderer.nativeCanvas);
 
 // setup stage
-renderer.drawGrid();
-// renderer.registerCellClickHandler();
+const [xLen, yLen] = renderer.drawGrid();
+console.log(`Rendered grid with cell layout ${xLen},${yLen}`);
+
+// create game
+const game = new Game();
+
