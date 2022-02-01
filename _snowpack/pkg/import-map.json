@@ -1,0 +1,6 @@
+{
+  "imports": {
+    "pixi.js": "./pixijs.js",
+    "rxjs": "./rxjs.js"
+  }
+}
