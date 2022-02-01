@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "start": "snowpack dev",
-    "build": "snowpack build",
+    "build": "snowpack build --polyfill-node",
     "format": "prettier --write .",
     "lint": "prettier --check .",
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js"
@@ -15,7 +15,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "paper": "^0.12.15",
+    "pixi.js": "^6.2.2",
     "rxjs": "^7.5.2"
   },
   "devDependencies": {

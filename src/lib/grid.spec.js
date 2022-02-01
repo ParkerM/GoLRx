@@ -6,6 +6,40 @@ const F = false;
 const M = true;
 const _ = false;
 
+describe('Grid', () => {
+  /** @type {Grid} */
+  let grid;
+
+  beforeEach(() => {
+    grid = new Grid(3, 3);
+  });
+
+  it('emits all changed cells after transition', (done) => {
+    grid.activateCell(1, 1);
+
+    expect.assertions(3);
+    expect(grid.getGrid()).toEqual([
+      [F, F, F],
+      [F, T, F],
+      [F, F, F],
+    ]);
+
+    grid.changeEmitter.asObservable().subscribe({
+      next: (change) => {
+        expect(change).toEqual([1, 1, false]);
+        done();
+      },
+    });
+
+    grid.transition();
+    expect(grid.getGrid()).toEqual([
+      [F, F, F],
+      [F, F, F],
+      [F, F, F],
+    ]);
+  });
+});
+
 describe('Cells', () => {
   /** @type {Grid} */
   let grid;
@@ -167,11 +201,25 @@ describe('Patterns', () => {
  * @return {boolean[][]}
  */
 function shiftedGrid(source, moveX, moveY) {
-  const dimX = source.length;
-  const dimY = source[0].length;
+  return translate2dArray(source, moveX, moveY, false);
+}
+
+/**
+ * Creates a translated copy of a 2D array.
+ *
+ * @template T
+ * @param arr {T[][]} - 2D source array
+ * @param moveX {number} - number of steps to move left (-) or right (+)
+ * @param moveY {number} - number of steps to move up (-) or down (+)
+ * @param fill {T} - default value for abyss
+ * @return {T[][]}
+ */
+function translate2dArray(arr, moveX, moveY, fill) {
+  const dimX = arr.length;
+  const dimY = arr[0].length;
 
   const shifted = [];
-  for (let i = 0; i < dimX; i++) shifted[i] = Array(dimY).fill(false);
+  for (let i = 0; i < dimX; i++) shifted[i] = Array(dimY).fill(fill);
 
   for (let i = 0; i < dimX; i++) {
     const iShift = i + moveX;
@@ -180,7 +228,7 @@ function shiftedGrid(source, moveX, moveY) {
     for (let j = 0; j < dimY; j++) {
       const jShift = j + moveY;
       if (jShift < 0 || jShift >= dimY) continue;
-      shifted[iShift][jShift] = source[i][j];
+      shifted[iShift][jShift] = arr[i][j];
     }
   }
   return shifted;
@@ -225,7 +273,10 @@ const glider = [
   ],
 ];
 
-// leaving this here for copy/paste purposes
+/*
+ * Leaving these here for copy/paste purposes
+ */
+// noinspection JSUnusedLocalSymbols
 const ALL_FALSE = [
   [F, F, F, F, F],
   [F, F, F, F, F],
@@ -233,6 +284,7 @@ const ALL_FALSE = [
   [F, F, F, F, F],
   [F, F, F, F, F],
 ];
+// noinspection JSUnusedLocalSymbols
 const ALL_UNDERSCORE = [
   [_, _, _, _, _],
   [_, _, _, _, _],

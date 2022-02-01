@@ -29,6 +29,9 @@ class Grid {
   /** @type {Subject<void>} */
   notifier = new Subject();
 
+  /** @type {Subject<[number, number, boolean]>} */
+  changeEmitter = new Subject();
+
   /**
    * Whether the game is currently running.
    * @type {boolean}
@@ -62,17 +65,27 @@ class Grid {
     for (let x = 0; x < this.xLen; x++) {
       let col = new Array(this.yLen);
       for (let y = 0; y < this.yLen; y++) {
-        col[y] = new Cell(this.notifier, x, y);
+        col[y] = new Cell(this.notifier, x, y, this.changeEmitter);
       }
       this.#plane[x] = col;
     }
   }
 
   /**
-   * Progress the game by 1 step.
+   * Attaches each cell's notifier to its neighbors' listeners.
+   * Each cell's subscription is stored in {@link subscriptions}.
    */
-  tick() {
-    this.notifier.next(void 0);
+  #introduceNeighbors() {
+    return this.#coordinatePairs()
+      .map(([x, y]) => [x, y, this.getCellAt(x, y)])
+      .map(([x, y, cell]) =>
+        cell.listenToNeighbors(
+          this.#getAdjacentCells(x, y).map((c) =>
+            c.neighborNotifier.asObservable(),
+          ),
+        ),
+      )
+      .forEach((subscription) => this.subscriptions.add(subscription));
   }
 
   /**
@@ -88,6 +101,16 @@ class Grid {
    */
   activateCells(coords) {
     coords.forEach(([x, y]) => (this.getCellAt(x, y).alive = true));
+  }
+
+  /**
+   * @param {number} x
+   * @param {number} y
+   * @param state {boolean} - whether the cell is alive or dead.
+   */
+  setCellState(x, y, state) {
+    this.getCellAt(x, y).alive = state;
+    console.log(`Cell ${x},${y} now has state ${this.getCellAt(x, y).alive}`);
   }
 
   /**
@@ -160,29 +183,17 @@ class Grid {
   }
 
   /**
-   * Attaches each cell's notifier to its neighbors' listeners.
-   * Each cell's subscription is stored in {@link subscriptions}.
-   */
-  #introduceNeighbors() {
-    return this.#coordinatePairs()
-      .map(([x, y]) => [x, y, this.getCellAt(x, y)])
-      .map(([x, y, cell]) =>
-        cell.listenToNeighbors(
-          this.#getAdjacentCells(x, y).map((c) =>
-            c.neighborNotifier.asObservable(),
-          ),
-        ),
-      )
-      .forEach((subscription) => this.subscriptions.add(subscription));
-  }
-
-  /**
    * Kicks off the first notification for each cell.
    */
   #broadcastStart() {
-    this.#coordinatePairs()
-      .map(([x, y]) => this.getCellAt(x, y))
-      .forEach((cell) => cell.start());
+    this.allCells.forEach((cell) => cell.start());
+  }
+
+  /**
+   * @returns {Cell[]} - all cells on the grid.
+   */
+  get allCells() {
+    return this.#coordinatePairs().map(([x, y]) => this.getCellAt(x, y));
   }
 }
 
@@ -192,6 +203,12 @@ class Cell {
    * @type {Subject<boolean>}
    */
   neighborNotifier = new Subject();
+
+  /**
+   * Used to broadcast current position and state whenever a change occurs.
+   * @type {Subject<[number, number, boolean]>}
+   */
+  changeEmitter;
 
   /**
    * Indicates a next step signal.
@@ -221,12 +238,14 @@ class Cell {
    * @param {Observable<void>} ticker - the game "clock" that emits whenever state should update
    * @param {number} x
    * @param {number} y
+   * @param changeEmitter {Subject<[number, number, boolean]>}
    */
-  constructor(ticker, x, y) {
+  constructor(ticker, x, y, changeEmitter = null) {
     this.#posX = x;
     this.#posY = y;
     this.alive = false;
     this.#ticker = ticker;
+    this.changeEmitter = changeEmitter;
   }
 
   /**
@@ -243,12 +262,18 @@ class Cell {
 
   /**
    * Updates this cell's state and returns it wrapped in an observable.
+   * Also publishes coords and state in the event of a change.
    *
    * @param livingNeighborCount {number}
    * @return {Observable<boolean>}
    */
   #updateState(livingNeighborCount) {
+    const prev = this.alive;
     this.alive = this.#nextState(livingNeighborCount);
+
+    if (prev !== this.alive) {
+      this.changeEmitter.next([this.#posX, this.#posY, this.alive]);
+    }
     return of(this.alive);
   }
 
