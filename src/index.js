@@ -1,6 +1,6 @@
 import { PixiRenderer } from './web/pixi-renderer.js';
 import { Game } from './lib/game.js';
-import { CHANGE_EMITTER, Grid } from './lib/grid.js';
+import { Grid } from './lib/grid.js';
 import { formatGrid } from './lib/util.js';
 
 // Create renderer and add to document
@@ -38,10 +38,10 @@ glider.forEach(([x, y]) => renderer.setCellState(x, y, true));
 console.log(formatGrid(grid.getGrid()));
 
 // Listen for state changes and update view as needed
-CHANGE_EMITTER.asObservable().subscribe({
+grid.changeEmitter.asObservable().subscribe({
   next: ([x, y, state]) => {
     console.log(`Saw state change: ${x},${y}=${state}`);
-    renderer.setCellState(x, y, state);
+    renderer.setCellState(y, x, state);
   },
 });
 

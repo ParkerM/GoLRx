@@ -10,9 +10,6 @@ import {
 } from 'rxjs';
 import { allPairs } from './util.js';
 
-/** @type {Subject<[number, number, boolean]>} */
-const CHANGE_EMITTER = new Subject();
-
 class Grid {
   /**
    * Dummy cell to represent oob
@@ -31,6 +28,9 @@ class Grid {
 
   /** @type {Subject<void>} */
   notifier = new Subject();
+
+  /** @type {Subject<[number, number, boolean]>} */
+  changeEmitter = new Subject();
 
   /**
    * Whether the game is currently running.
@@ -65,7 +65,7 @@ class Grid {
     for (let x = 0; x < this.xLen; x++) {
       let col = new Array(this.yLen);
       for (let y = 0; y < this.yLen; y++) {
-        col[y] = new Cell(this.notifier, x, y);
+        col[y] = new Cell(this.notifier, x, y, this.changeEmitter);
       }
       this.#plane[x] = col;
     }
@@ -205,6 +205,12 @@ class Cell {
   neighborNotifier = new Subject();
 
   /**
+   * Used to broadcast current position and state whenever a change occurs.
+   * @type {Subject<[number, number, boolean]>}
+   */
+  changeEmitter;
+
+  /**
    * Indicates a next step signal.
    * @type {Observable<void>}
    */
@@ -232,12 +238,14 @@ class Cell {
    * @param {Observable<void>} ticker - the game "clock" that emits whenever state should update
    * @param {number} x
    * @param {number} y
+   * @param changeEmitter {Subject<[number, number, boolean]>}
    */
-  constructor(ticker, x, y) {
+  constructor(ticker, x, y, changeEmitter = null) {
     this.#posX = x;
     this.#posY = y;
     this.alive = false;
     this.#ticker = ticker;
+    this.changeEmitter = changeEmitter;
   }
 
   /**
@@ -264,7 +272,7 @@ class Cell {
     this.alive = this.#nextState(livingNeighborCount);
 
     if (prev !== this.alive) {
-      CHANGE_EMITTER.next([this.#posX, this.#posY, this.alive]);
+      this.changeEmitter.next([this.#posX, this.#posY, this.alive]);
     }
     return of(this.alive);
   }
@@ -298,4 +306,4 @@ class Cell {
   }
 }
 
-export { Cell, Grid, CHANGE_EMITTER };
+export { Cell, Grid };

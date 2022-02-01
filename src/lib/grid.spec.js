@@ -1,4 +1,4 @@
-import { CHANGE_EMITTER, Grid } from './grid.js';
+import { Grid } from './grid.js';
 
 const T = true;
 const F = false;
@@ -24,7 +24,7 @@ describe('Grid', () => {
       [F, F, F],
     ]);
 
-    CHANGE_EMITTER.asObservable().subscribe({
+    grid.changeEmitter.asObservable().subscribe({
       next: (change) => {
         expect(change).toEqual([1, 1, false]);
         done();
