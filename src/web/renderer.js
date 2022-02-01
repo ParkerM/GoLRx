@@ -27,13 +27,9 @@ class Renderer {
     return this.canvas;
   }
 
-  drawGrid() {
+  drawGrid() {}
 
-  }
-
-  registerCellClickHandler() {
-
-  }
+  registerCellClickHandler() {}
 }
 
 export { Renderer };

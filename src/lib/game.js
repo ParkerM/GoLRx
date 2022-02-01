@@ -5,7 +5,6 @@ import { Observable, Subscription, tap } from 'rxjs';
  * that can be started and stopped.
  */
 class Game {
-
   /**
    * Whether the game is currently running.
    * @type {boolean}
@@ -45,18 +44,20 @@ class Game {
    * @returns {Subscription}
    */
   handleIncomingCellEvent(cellToggled) {
-    return cellToggled.pipe(tap(a => console.log(`Got this in game: ${JSON.stringify(a)}`))).subscribe({
-      next: ([x, y, active]) => this.#grid.setCellState(x, y, active),
-      error: err => console.error(`Error in Game.cellToggled listener: ${err}`),
-      complete: () => console.log('Game received complete signal'),
-    })
+    return cellToggled
+      .pipe(tap((a) => console.log(`Got this in game: ${JSON.stringify(a)}`)))
+      .subscribe({
+        next: ([x, y, active]) => this.#grid.setCellState(x, y, active),
+        error: (err) =>
+          console.error(`Error in Game.cellToggled listener: ${err}`),
+        complete: () => console.log('Game received complete signal'),
+      });
   }
 
   /**
    * @returns {Set<Cell>}
    */
-  get cells() {
-  }
+  get cells() {}
 
   /**
    * Progresses the game by one tick.

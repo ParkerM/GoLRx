@@ -55,8 +55,8 @@ class PixiRenderer {
     this.#width = width;
     this.#height = height;
     this.#app = new PIXI.Application({
-      width: width + (CELL_PADDING * 2),
-      height: height + (CELL_PADDING * 2),
+      width: width + CELL_PADDING * 2,
+      height: height + CELL_PADDING * 2,
       backgroundColor: BG_COLOR,
       resolution: doc.defaultView.devicePixelRatio || 1,
     });
@@ -78,8 +78,8 @@ class PixiRenderer {
    */
   drawGrid() {
     this.#gridContainer = this.#rootContainer.addChild(new PIXI.Container());
-    this.#gridContainer.position.x = CELL_PADDING + (CELL_PADDING / 2);
-    this.#gridContainer.position.y = CELL_PADDING + (CELL_PADDING / 2);
+    this.#gridContainer.position.x = CELL_PADDING + CELL_PADDING / 2;
+    this.#gridContainer.position.y = CELL_PADDING + CELL_PADDING / 2;
 
     const hCellsNum = this.#width / CELL_SIZE;
     const vCellsNum = this.#height / CELL_SIZE;
@@ -93,12 +93,7 @@ class PixiRenderer {
         const yPos = CELL_SIZE * y;
         const graphics = new PIXI.Graphics()
           .beginFill(CELL_COLOR)
-          .drawRect(
-            xPos,
-            yPos,
-            CELL_SIZE_PADDED,
-            CELL_SIZE_PADDED,
-          )
+          .drawRect(xPos, yPos, CELL_SIZE_PADDED, CELL_SIZE_PADDED)
           .on('mousedown', (ev) => this.selectCell(ev, x, y))
           .on('mouseover', (ev) => this.hoverOver(ev));
         graphics.interactive = true;
