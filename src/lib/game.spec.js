@@ -1,7 +1,7 @@
 import { Game } from './game.js';
 import { Cell, Grid } from './grid.js';
 
-describe('Game', () => {
+xdescribe('Game', () => {
   it('should initialize grid with seed', () => {
     const seed = new Set([new Cell(1, 2), new Cell(9, 9), new Cell(42, 42)]);
     const grid = new Grid(50, 50);
