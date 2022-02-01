@@ -53,7 +53,7 @@ jobs:
         run: npm run test
 
       - name: Generate coverage badge
-        run: npx make-coverage-badge --output-path ./public/coverage/badge.svg
+        run: npx make-coverage-badge --output-path ./coverage/badge.svg
 
       - name: Upload coverage artifacts
         if: ${{ github.ref == 'refs/heads/main' }}
