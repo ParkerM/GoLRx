@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1643761415308" clover="3.2.0">
-  <project timestamp="1643761415308" name="All files">
+<coverage generated="1643765487945" clover="3.2.0">
+  <project timestamp="1643765487945" name="All files">
     <metrics statements="437" coveredstatements="379" conditionals="54" coveredconditionals="52" methods="35" coveredmethods="22" elements="526" coveredelements="453" complexity="0" loc="437" ncloc="437" packages="1" files="3" classes="3"/>
     <file name="game.js" path="/home/runner/work/GoLRx/GoLRx/src/lib/game.js">
       <metrics statements="89" coveredstatements="52" conditionals="2" coveredconditionals="1" methods="8" coveredmethods="0"/>
