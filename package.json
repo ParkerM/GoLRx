@@ -9,7 +9,8 @@
     "build": "snowpack build --polyfill-node",
     "format": "prettier --write .",
     "lint": "prettier --check .",
-    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js"
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
+    "prepare": "husky install"
   },
   "keywords": [],
   "author": "",
@@ -19,8 +20,13 @@
     "rxjs": "^7.5.2"
   },
   "devDependencies": {
+    "husky": "^7.0.4",
     "jest": "^27.4.7",
+    "lint-staged": "^12.3.3",
     "prettier": "^2.5.1",
     "snowpack": "^3.8.8"
+  },
+  "lint-staged": {
+    "*.{js,mjs,html,css,md}": "prettier --write"
   }
 }
