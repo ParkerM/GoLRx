@@ -12,14 +12,14 @@ const boolChar = (boolVal) => {
  */
 function formatGrid(subGrid, transform = (c) => c) {
   let out = '---';
-  out += '-'.repeat(subGrid.length * 2) + '\n';
+  out += '-'.repeat(subGrid[0].length * 2) + '\n';
   subGrid.forEach((row) => {
     out += '| ';
     out += row.map((cell) => boolChar(transform(cell))).join(' ');
     out += ' |\n';
   });
   out += '---';
-  out += '-'.repeat(subGrid.length * 2) + '\n';
+  out += '-'.repeat(subGrid[0].length * 2) + '\n';
   return out;
 }
 

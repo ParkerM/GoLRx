@@ -21,10 +21,10 @@ class Grid {
   #plane;
 
   /** @type {number} */
-  xLen;
+  width;
 
   /** @type {number} */
-  yLen;
+  height;
 
   /** @type {Subject<void>} */
   notifier = new Subject();
@@ -54,20 +54,21 @@ class Grid {
       Number.NEGATIVE_INFINITY,
       Number.NEGATIVE_INFINITY,
     );
-    this.xLen = width;
-    this.yLen = height;
+    this.width = width;
+    this.height = height;
     this.#initPlane();
     this.#introduceNeighbors();
   }
 
   #initPlane() {
-    this.#plane = new Array(this.xLen);
-    for (let x = 0; x < this.xLen; x++) {
-      let col = new Array(this.yLen);
-      for (let y = 0; y < this.yLen; y++) {
-        col[y] = new Cell(this.notifier, x, y, this.changeEmitter);
+    const hCells = this.width;
+    const vCells = this.height;
+    this.#plane = [];
+    for (let x = 0; x < hCells; x++) {
+      this.#plane[x] = [];
+      for (let y = 0; y < vCells; y++) {
+        this.#plane[x].push(new Cell(this.notifier, x, y, this.changeEmitter));
       }
-      this.#plane[x] = col;
     }
   }
 
@@ -138,7 +139,7 @@ class Grid {
    * @return {boolean}
    */
   #insideBounds = ([x, y]) =>
-    x >= 0 && y >= 0 && x < this.xLen && y < this.yLen;
+    x >= 0 && y >= 0 && x < this.width && y < this.height;
 
   /**
    * Gets cells immediately adjacent to the given coordinates, excluding any
@@ -177,8 +178,8 @@ class Grid {
    * @returns {Array<[number, number]>} all coordinate pairs on the grid
    */
   #coordinatePairs() {
-    const xRange = Array.from({ length: this.xLen }, (v, k) => k);
-    const yRange = Array.from({ length: this.yLen }, (v, k) => k);
+    const xRange = Array.from({ length: this.width }, (v, k) => k);
+    const yRange = Array.from({ length: this.height }, (v, k) => k);
     return allPairs(xRange, yRange);
   }
 
