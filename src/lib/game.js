@@ -1,4 +1,11 @@
-import { interval, Observable, Subject, Subscription, takeUntil, tap } from 'rxjs';
+import {
+  interval,
+  Observable,
+  Subject,
+  Subscription,
+  takeUntil,
+  tap,
+} from 'rxjs';
 
 /**
  * Represents a Game, consisting of a grid and an initial state,
@@ -63,8 +70,7 @@ class Game {
   /**
    * @returns {Set<Cell>}
    */
-  get cells() {
-  }
+  get cells() {}
 
   /**
    * Progresses the game by one tick.
@@ -80,11 +86,11 @@ class Game {
   start(tickInterval) {
     this.#running = true;
 
-    interval(tickInterval * 1000).pipe(
-      takeUntil(this.#stopSignal)
-    ).subscribe({
-      next: () => this.tick(),
-    });
+    interval(tickInterval * 1000)
+      .pipe(takeUntil(this.#stopSignal))
+      .subscribe({
+        next: () => this.tick(),
+      });
   }
 
   /**
