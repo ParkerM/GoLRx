@@ -1,4 +1,4 @@
-import { Observable, Subscription, tap } from '../../_snowpack/pkg/rxjs.js';
+import { interval, Observable, Subject, Subscription, takeUntil, tap } from '../../_snowpack/pkg/rxjs.js';
 
 /**
  * Represents a Game, consisting of a grid and an initial state,
@@ -10,6 +10,12 @@ class Game {
    * @type {boolean}
    */
   #running = false;
+
+  /**
+   * Signal used to stop the running game loop.
+   * @type {Subject<void>}
+   */
+  #stopSignal = new Subject();
 
   /**
    * Grid for the current game.
@@ -57,7 +63,8 @@ class Game {
   /**
    * @returns {Set<Cell>}
    */
-  get cells() {}
+  get cells() {
+  }
 
   /**
    * Progresses the game by one tick.
@@ -72,12 +79,19 @@ class Game {
    */
   start(tickInterval) {
     this.#running = true;
+
+    interval(tickInterval * 1000).pipe(
+      takeUntil(this.#stopSignal)
+    ).subscribe({
+      next: () => this.tick(),
+    });
   }
 
   /**
    * Stops the game.
    */
   stop() {
+    this.#stopSignal.next(void 0);
     this.#running = false;
   }
 

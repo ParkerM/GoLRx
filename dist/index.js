@@ -34,14 +34,14 @@ const glider = [
   [2, 3],
 ];
 grid.activateCells(glider);
-glider.forEach(([x, y]) => renderer.setCellState(x, y, true));
+renderer.activateCells(glider);
 console.log(formatGrid(grid.getGrid()));
 
 // Listen for state changes and update view as needed
 grid.changeEmitter.asObservable().subscribe({
   next: ([x, y, state]) => {
     console.log(`Saw state change: ${x},${y}=${state}`);
-    renderer.setCellState(y, x, state);
+    renderer.setCellState(x, y, state);
   },
 });
 

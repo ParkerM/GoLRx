@@ -183,6 +183,13 @@ class PixiRenderer {
     if (!!state) this.#activateCell(this.#cells[x][y]);
     else this.#deactivateCell(this.#cells[x][y]);
   }
+
+  /**
+   * @param coords {[number, number][]} x,y pairs to activate
+   */
+  activateCells(coords) {
+    coords.forEach(([x, y]) => this.#activateCell(this.#cells[x][y]));
+  }
 }
 
 export { PixiRenderer };
