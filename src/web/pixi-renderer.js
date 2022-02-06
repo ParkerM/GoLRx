@@ -1,5 +1,6 @@
 import * as PIXI from 'pixi.js';
 import { Subject } from 'rxjs';
+import { State } from '../lib/util.js';
 
 const BG_COLOR = 0xcccccc;
 const CELL_COLOR = 0xffffff;
@@ -41,7 +42,7 @@ class PixiRenderer {
 
   /**
    * Subject that emits [x, y, isActive] when a cell is clicked.
-   * @type {Subject<[number, number, boolean]>}
+   * @type {Subject<[number, number, State]>}
    */
   cellToggled = new Subject();
 
@@ -149,10 +150,10 @@ class PixiRenderer {
     const target = event.target;
     if (target.alpha !== ALPHA_SELECTED) {
       this.#activateCell(target);
-      this.cellToggled.next([x, y, true]);
+      this.cellToggled.next([x, y, State.ALIVE]);
     } else {
       this.#deactivateCell(target);
-      this.cellToggled.next([x, y, false]);
+      this.cellToggled.next([x, y, State.DEAD]);
     }
     console.log(`Click at ${x},${y}.`);
     console.log(event);
@@ -176,11 +177,11 @@ class PixiRenderer {
    * Manually sets the toggled state of a visible cell.
    * @param x {number} - x pos of this cell in the grid
    * @param y {number} - y pos of this cell in the grid
-   * @param state {boolean}
+   * @param state {State}
    */
   setCellState(x, y, state) {
     console.log(`Setting cell state at ${x},${y} to ${state}`);
-    if (!!state) this.#activateCell(this.#cells[x][y]);
+    if (state.isAlive) this.#activateCell(this.#cells[x][y]);
     else this.#deactivateCell(this.#cells[x][y]);
   }
 
