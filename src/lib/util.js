@@ -1,3 +1,30 @@
+/**
+ * Enum representing the state of a cell (alive or dead).
+ */
+class State {
+  static ALIVE = new State(true);
+  static DEAD = new State(false);
+
+  /** @param alive {boolean} */
+  constructor(alive) {
+    this.alive = alive;
+  }
+
+  toString() {
+    return `State.${this.alive}`;
+  }
+
+  /** @returns {boolean} */
+  get isAlive() {
+    return this.alive;
+  }
+
+  /** @returns {boolean} */
+  get isDead() {
+    return !this.alive;
+  }
+}
+
 const boolChar = (boolVal) => {
   if (boolVal === true) return '#';
   if (boolVal === false) return '.';
@@ -25,7 +52,7 @@ function formatGrid(subGrid, transform = (c) => c) {
 
 /** @param subGrid {Array<Array<Cell>>} */
 function printGrid(subGrid) {
-  console.log(formatGrid(subGrid, (c) => c.alive));
+  console.log(formatGrid(subGrid, (c) => c.state));
 }
 
 /**
@@ -36,4 +63,4 @@ function printGrid(subGrid) {
  */
 const allPairs = (a, b) => a.flatMap((x) => b.map((y) => [x, y]));
 
-export { formatGrid, printGrid, allPairs };
+export { formatGrid, printGrid, allPairs, State };
