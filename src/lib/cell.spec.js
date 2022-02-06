@@ -28,7 +28,7 @@ describe('Cells', () => {
 
     const allCells = [cell].concat(...neighbors);
     for (let i = 0; i < allCells.length; i++) {
-      for (let j = 0; j < allCells.length; j++) {
+      for (let j = i; j < allCells.length; j++) {
         if (i === j) continue;
         allCells[j].addNeighbor(allCells[i]);
         allCells[i].addNeighbor(allCells[j]);
@@ -49,8 +49,7 @@ describe('Cells', () => {
     setupNeighbors(cell, [State.ALIVE, State.DEAD]);
 
     cell.listenUntil(stopSignal).subscribe({
-      next: (state) => expect(state).toBe(State.DEAD),
-      complete: () => done(),
+      next: expectNext(State.DEAD, done),
     });
     ticker.next(void 0);
     stopSignal.next(void 0);
@@ -61,8 +60,7 @@ describe('Cells', () => {
     setupNeighbors(cell, [State.ALIVE, State.ALIVE]);
 
     cell.listenUntil(stopSignal).subscribe({
-      next: (state) => expect(state).toBe(State.ALIVE),
-      complete: () => done(),
+      next: expectNext(State.ALIVE, done),
     });
     ticker.next(void 0);
     stopSignal.next(void 0);
@@ -73,8 +71,7 @@ describe('Cells', () => {
     setupNeighbors(cell, [State.ALIVE, State.ALIVE, State.ALIVE]);
 
     cell.listenUntil(stopSignal).subscribe({
-      next: (state) => expect(state).toBe(State.ALIVE),
-      complete: () => done(),
+      next: expectNext(State.ALIVE, done),
     });
     ticker.next(void 0);
     stopSignal.next(void 0);
@@ -85,8 +82,7 @@ describe('Cells', () => {
     setupNeighbors(cell, [State.ALIVE, State.ALIVE, State.ALIVE, State.ALIVE]);
 
     cell.listenUntil(stopSignal).subscribe({
-      next: (state) => expect(state).toBe(State.DEAD),
-      complete: () => done(),
+      next: expectNext(State.DEAD, done),
     });
     ticker.next(void 0);
     stopSignal.next(void 0);
@@ -97,10 +93,19 @@ describe('Cells', () => {
     setupNeighbors(cell, [State.ALIVE, State.ALIVE, State.ALIVE]);
 
     cell.listenUntil(stopSignal).subscribe({
-      next: (state) => expect(state).toBe(State.ALIVE),
-      complete: () => done(),
+      next: expectNext(State.ALIVE, done),
     });
     ticker.next(void 0);
     stopSignal.next(void 0);
   });
 });
+
+/**
+ * @param {State} expected - expected state
+ * @param {jest.DoneCallback} done - done callback
+ * @returns {(State) => void}
+ */
+const expectNext = (expected, done) => (state) => {
+  expect(state).toBe(expected);
+  done();
+};
