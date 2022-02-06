@@ -1,7 +1,5 @@
 import { Grid } from './grid.js';
-
-const T = true;
-const F = false;
+import { State } from './util.js';
 
 const M = true;
 const _ = false;
@@ -19,106 +17,95 @@ describe('Grid', () => {
 
     expect.assertions(3);
     expect(grid.getGrid()).toEqual([
-      [F, F, F],
-      [F, T, F],
-      [F, F, F],
+      [_, _, _],
+      [_, M, _],
+      [_, _, _],
     ]);
 
     grid.changeEmitter.asObservable().subscribe({
       next: (change) => {
-        expect(change).toEqual([1, 1, false]);
+        expect(change).toEqual([1, 1, State.DEAD]);
         done();
       },
     });
 
     grid.transition();
     expect(grid.getGrid()).toEqual([
-      [F, F, F],
-      [F, F, F],
-      [F, F, F],
+      [_, _, _],
+      [_, _, _],
+      [_, _, _],
     ]);
   });
-});
 
-describe('Cells', () => {
-  /** @type {Grid} */
-  let grid;
-
-  beforeEach(() => {
-    grid = new Grid(3, 3);
+  it('tick advances the game once and stops', () => {
+    grid.activateCell(1, 0);
     grid.activateCell(1, 1);
-  });
-
-  it('Any live cell with fewer than two live neighbours dies, as if by underpopulation', () => {
-    expect(grid.getGrid()).toEqual([
-      [F, F, F],
-      [F, T, F],
-      [F, F, F],
-    ]);
-    grid.transition();
-    expect(grid.getGrid()).toEqual([
-      [F, F, F],
-      [F, F, F],
-      [F, F, F],
-    ]);
-    expect(grid.getCellAt(1, 1).alive).toBe(false);
-  });
-
-  it('Any live cell with two live neighbours lives on to the next generation', () => {
-    grid.activateCell(0, 0);
-    grid.activateCell(1, 0);
-
-    expect(grid.getGrid()).toEqual([
-      [T, F, F],
-      [T, T, F],
-      [F, F, F],
-    ]);
-    grid.transition();
-    expect(grid.getCellAt(1, 1).alive).toBe(true);
-  });
-
-  it('Any live cell with three live neighbours lives on to the next generation', () => {
-    grid.activateCell(0, 0);
-    grid.activateCell(1, 0);
-    grid.activateCell(2, 2);
-
-    expect(grid.getGrid()).toEqual([
-      [T, F, F],
-      [T, T, F],
-      [F, F, T],
-    ]);
-    grid.transition();
-    expect(grid.getCellAt(1, 1).alive).toBe(true);
-  });
-
-  it('Any live cell with more than three live neighbours dies, as if by overpopulation', () => {
-    grid.activateCell(0, 0);
-    grid.activateCell(1, 0);
     grid.activateCell(1, 2);
-    grid.activateCell(2, 0);
 
+    expect(grid.running).toBe(false);
     expect(grid.getGrid()).toEqual([
-      [T, F, F],
-      [T, T, T],
-      [T, F, F],
+      [_, _, _],
+      [M, M, M],
+      [_, _, _],
     ]);
-    grid.transition();
-    expect(grid.getCellAt(1, 1).alive).toBe(false);
+
+    grid.tick();
+    expect(grid.running).toBe(false);
+    expect(grid.getGrid()).toEqual([
+      [_, M, _],
+      [_, M, _],
+      [_, M, _],
+    ]);
+
+    grid.tick();
+    expect(grid.running).toBe(false);
+    expect(grid.getGrid()).toEqual([
+      [_, _, _],
+      [M, M, M],
+      [_, _, _],
+    ]);
   });
 
-  it('Any dead cell with exactly three live neighbours becomes a live cell, as if by reproduction', () => {
-    grid.getCellAt(1, 1).alive = false;
-    grid.activateCell(0, 0);
-    grid.activateCell(0, 2);
-    grid.activateCell(2, 2);
+  it('grid can be modified between ticks', () => {
+    grid.activateCell(1, 0);
+    grid.activateCell(1, 1);
+    grid.activateCell(1, 2);
 
+    // set oscillator and tick once
     expect(grid.getGrid()).toEqual([
-      [T, F, T],
-      [F, F, F],
-      [F, F, T],
+      [_, _, _],
+      [M, M, M],
+      [_, _, _],
     ]);
-    grid.transition();
-    expect(grid.getCellAt(1, 1).alive).toBe(T);
+    grid.tick();
+    expect(grid.getGrid()).toEqual([
+      [_, M, _],
+      [_, M, _],
+      [_, M, _],
+    ]);
+
+    // change to glider and tick again
+    grid.setAllCellStates(State.DEAD);
+    grid.activateCells([
+      [1, 0],
+      [2, 1],
+      [0, 2],
+      [1, 2],
+      [2, 2],
+    ]);
+    expect(grid.getGrid()).toEqual([
+      [_, _, M],
+      [M, _, M],
+      [_, M, M],
+    ]);
+
+    grid.tick();
+    expect(grid.running).toBe(false);
+    expect(grid.getGrid()).toEqual([
+      [_, M, _],
+      [_, _, M],
+      [_, M, M],
+    ]);
   });
 });
 
@@ -208,11 +195,11 @@ function shiftedGrid(source, moveX, moveY) {
  * Creates a translated copy of a 2D array.
  *
  * @template T
- * @param arr {T[][]} - 2D source array
+ * @param arr {M[][]} - 2D source array
  * @param moveX {number} - number of steps to move left (-) or right (+)
  * @param moveY {number} - number of steps to move up (-) or down (+)
- * @param fill {T} - default value for abyss
- * @return {T[][]}
+ * @param fill {M} - default value for abyss
+ * @return {M[][]}
  */
 function translate2dArray(arr, moveX, moveY, fill) {
   const dimX = arr.length;
@@ -278,14 +265,6 @@ const glider = [
  */
 // noinspection JSUnusedLocalSymbols
 const ALL_FALSE = [
-  [F, F, F, F, F],
-  [F, F, F, F, F],
-  [F, F, F, F, F],
-  [F, F, F, F, F],
-  [F, F, F, F, F],
-];
-// noinspection JSUnusedLocalSymbols
-const ALL_UNDERSCORE = [
   [_, _, _, _, _],
   [_, _, _, _, _],
   [_, _, _, _, _],
