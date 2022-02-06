@@ -1,4 +1,5 @@
 import {
+  asyncScheduler,
   interval,
   Observable,
   Subject,
@@ -44,7 +45,7 @@ class Game {
 
   /**
    * @param grid {Grid} - initialized grid to be managed by this game.
-   * @param cellToggled {Observable<[number, number, boolean]>} - emits [x,y,active] on interaction
+   * @param cellToggled {Observable<[number, number, State]>} - emits [x,y,active] on interaction
    */
   constructor(grid, cellToggled) {
     this.#grid = grid;
@@ -53,7 +54,7 @@ class Game {
 
   /**
    *
-   * @param cellToggled {Observable<[number, number, boolean]>}
+   * @param cellToggled {Observable<[number, number, State]>}
    * @returns {Subscription}
    */
   handleIncomingCellEvent(cellToggled) {
@@ -76,17 +77,20 @@ class Game {
    * Progresses the game by one tick.
    */
   tick() {
-    this.#grid.transition();
+    this.#grid.tick();
   }
 
   /**
    * Starts the game with the given tick interval.
-   * @param tickInterval {number} - seconds between ticks
+   *
+   * @param {number} tickInterval - seconds between ticks
+   * @param {import('rxjs').SchedulerLike} scheduler - optional scheduler
+   * @returns {Subscription}
    */
-  start(tickInterval) {
+  start(tickInterval, scheduler = asyncScheduler) {
     this.#running = true;
 
-    interval(tickInterval * 1000)
+    return interval(tickInterval * 1000, scheduler)
       .pipe(takeUntil(this.#stopSignal))
       .subscribe({
         next: () => this.tick(),
