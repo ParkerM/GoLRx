@@ -1465,6 +1465,26 @@ function zip() {
         : EMPTY;
 }
 
+function distinctUntilChanged(comparator, keySelector) {
+    if (keySelector === void 0) { keySelector = identity; }
+    comparator = comparator !== null && comparator !== void 0 ? comparator : defaultCompare;
+    return operate(function (source, subscriber) {
+        var previousKey;
+        var first = true;
+        source.subscribe(new OperatorSubscriber(subscriber, function (value) {
+            var currentKey = keySelector(value);
+            if (first || !comparator(previousKey, currentKey)) {
+                first = false;
+                previousKey = currentKey;
+                subscriber.next(value);
+            }
+        }));
+    });
+}
+function defaultCompare(a, b) {
+    return a === b;
+}
+
 function sample(notifier) {
     return operate(function (source, subscriber) {
         var hasValue = false;
@@ -1549,4 +1569,4 @@ function tap(observerOrNext, error, complete) {
             identity;
 }
 
-export { BehaviorSubject, Observable, Subject, Subscription, asyncScheduler, filter, interval, map, of, sample, switchMap, takeUntil, tap, zip };
+export { BehaviorSubject, Observable, Subject, Subscription, asyncScheduler, distinctUntilChanged, filter, interval, map, of, sample, switchMap, takeUntil, tap, zip };

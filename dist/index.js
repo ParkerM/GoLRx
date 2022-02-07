@@ -20,6 +20,16 @@ btnStart.addEventListener('click', startButtonListener);
 const btnTick = document.getElementById('btnTick');
 btnTick.addEventListener('click', doTick);
 
+/** @type {HTMLOutputElement} */
+const intervalLabel = document.getElementById('lbl-ticks-sec');
+
+/** @type {HTMLInputElement} */
+const slider = document.getElementById('interval-slider');
+intervalLabel.value = slider.value;
+
+slider.addEventListener('input', updateIntervalLabel);
+slider.addEventListener('change', applyInterval);
+
 // create grid
 const grid = new Grid(xLen, yLen);
 // load game
@@ -45,8 +55,6 @@ grid.changeEmitter.asObservable().subscribe({
   },
 });
 
-const TICK_INTERVAL_SECONDS = 2;
-
 /**
  * @type {EventListener}
  * @param event {MouseEvent}
@@ -58,7 +66,7 @@ function startButtonListener(event) {
     game.stop();
     event.target.textContent = 'Start';
   } else {
-    game.start(TICK_INTERVAL_SECONDS);
+    game.start();
     event.target.textContent = 'Stop';
   }
 }
@@ -71,4 +79,17 @@ function doTick(event) {
   console.log('Tick clicked');
   console.log(event);
   game.tick();
+}
+
+/** @param {InputEvent} ev */
+function updateIntervalLabel(ev) {
+  intervalLabel.value = ev.target.value;
+}
+
+/** @param {Event} ev */
+function applyInterval(ev) {
+  const ticksPerSecond = ev.target.valueAsNumber;
+  const intervalMillis = (1 / ticksPerSecond) * 1000;
+  console.log(`Setting interval to ${intervalMillis} ms`);
+  game.tickInterval = intervalMillis;
 }

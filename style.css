@@ -1,3 +1,8 @@
+body {
+  background: white;
+  padding: 2em;
+}
+
 canvas {
   padding-left: 0;
   padding-right: 0;
@@ -6,4 +11,72 @@ canvas {
   display: block;
   width: 1200px;
   height: 600px;
+}
+
+.wrapper {
+  display: flex;
+  flex-flow: row wrap;
+  text-align: center;
+}
+
+/* We tell all items to be 100% width, via flex-basis */
+.wrapper > * {
+  padding: 10px;
+  flex: 1 100%;
+}
+
+@media all and (min-width: 600px) {
+  .panel {
+    flex: 1 0 0;
+  }
+}
+
+@media all and (min-width: 800px) {
+  /* We invert order of first sidebar and main
+   * And tell the main element to take twice as much width as the other two sidebars
+   */
+  .game-container {
+    flex: 2 0;
+  }
+  .controls {
+    order: 1;
+  }
+  .game-container {
+    order: 2;
+  }
+  .spacer {
+    order: 3;
+  }
+  .footer {
+    order: 4;
+  }
+}
+
+/* CONTROLS */
+
+.controls {
+  flex-direction: column;
+  background-color: beige;
+  padding: 1em;
+  text-align: left;
+}
+
+.form-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.5em;
+}
+
+.form-row > label {
+  padding: 0.5em 1em 0.5em 0;
+  flex: 1;
+}
+
+.form-row > input {
+  flex: 2;
+}
+
+.form-row > input,
+.form-row > button {
+  margin: 0.5em;
 }
