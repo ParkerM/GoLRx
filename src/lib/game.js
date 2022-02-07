@@ -1,9 +1,12 @@
 import {
   asyncScheduler,
+  BehaviorSubject,
+  distinctUntilChanged,
   interval,
   Observable,
   Subject,
   Subscription,
+  switchMap,
   takeUntil,
   tap,
 } from 'rxjs';
@@ -32,10 +35,10 @@ class Game {
   #grid;
 
   /**
-   * Emits [x,y,active] to indicate a cell state should be modified.
-   * @type {Observable<[number, number, boolean]>}
+   * Contains the currently-set tick interval in millisecond.
+   * @type {BehaviorSubject<number>}
    */
-  #cellToggleSubject;
+  #intervalMillis;
 
   /**
    * Subscriptions held by this game instance.
@@ -46,9 +49,11 @@ class Game {
   /**
    * @param grid {Grid} - initialized grid to be managed by this game.
    * @param cellToggled {Observable<[number, number, State]>} - emits [x,y,active] on interaction
+   * @param {number} tickInterval - ms between each tick in auto mode
    */
-  constructor(grid, cellToggled) {
+  constructor(grid, cellToggled, tickInterval = 1000) {
     this.#grid = grid;
+    this.#intervalMillis = new BehaviorSubject(tickInterval);
     this.subscriptions.add(this.handleIncomingCellEvent(cellToggled));
   }
 
@@ -81,17 +86,21 @@ class Game {
   }
 
   /**
-   * Starts the game with the given tick interval.
+   * Starts the game with the current tick interval.
    *
-   * @param {number} tickInterval - seconds between ticks
    * @param {import('rxjs').SchedulerLike} scheduler - optional scheduler
    * @returns {Subscription}
    */
-  start(tickInterval, scheduler = asyncScheduler) {
+  start(scheduler = asyncScheduler) {
     this.#running = true;
 
-    return interval(tickInterval * 1000, scheduler)
-      .pipe(takeUntil(this.#stopSignal))
+    return this.#intervalMillis
+      .asObservable()
+      .pipe(
+        distinctUntilChanged(),
+        switchMap((ms) => interval(ms, scheduler)),
+        takeUntil(this.#stopSignal),
+      )
       .subscribe({
         next: () => this.tick(),
       });
@@ -107,6 +116,13 @@ class Game {
 
   get isRunning() {
     return this.#running;
+  }
+
+  /**
+   * @param {number} ms
+   */
+  set tickInterval(ms) {
+    this.#intervalMillis.next(ms);
   }
 }
 

@@ -9,10 +9,36 @@
     <script type="module" src="./dist/index.js"></script>
   </head>
 
-  <body style="background: white">
-    <h1>I'm alive!</h1>
-    <button type="button" id="btnStart">Start</button>
-    <button type="button" id="btnTick">Step</button>
-    <div id="game-div"></div>
+  <body>
+    <div class="wrapper">
+      <header class="header">I'm alive!</header>
+
+      <div class="game-container">
+        <div id="game-div"></div>
+      </div>
+
+      <div class="panel controls">
+        <div class="form-row">
+          <button type="button" id="btnTick">Step</button>
+        </div>
+        <div class="form-row">
+          <button type="button" id="btnStart">Start</button>
+          <label for="interval-slider"
+            >Ticks/sec: <output id="lbl-ticks-sec"></output
+          ></label>
+          <input
+            type="range"
+            id="interval-slider"
+            min="0.2"
+            max="10"
+            step="0.2"
+          />
+        </div>
+      </div>
+
+      <div class="panel spacer"></div>
+
+      <footer class="footer">Footer</footer>
+    </div>
   </body>
 </html>

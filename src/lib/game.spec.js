@@ -87,7 +87,8 @@ describe('Game', () => {
     expect(grid.tick).toHaveBeenCalledTimes(1);
 
     // call start with 1 second interval
-    const subscription = game.start(1);
+    game.tickInterval = 1000;
+    const subscription = game.start();
     expect(grid.tick).toHaveBeenCalledTimes(1);
 
     jest.advanceTimersByTime(1000);
@@ -102,6 +103,35 @@ describe('Game', () => {
     expect(grid.tick).toHaveBeenCalledTimes(4);
     expect(subscription.closed).toBe(true);
 
+    return subscription.unsubscribe();
+  });
+
+  it('interval can be changed while running', () => {
+    jest.useFakeTimers();
+
+    // noinspection JSValidateTypes
+    /** @type {Grid} */
+    const grid = { tick: jest.fn() };
+    const game = new Game(grid, cellToggled);
+
+    // call start with 1 second interval
+    game.tickInterval = 1000;
+    const subscription = game.start();
+    expect(grid.tick).toHaveBeenCalledTimes(0);
+
+    jest.advanceTimersByTime(1000);
+    expect(grid.tick).toHaveBeenCalledTimes(1);
+
+    // change interval to 2 seconds
+    game.tickInterval = 2000;
+
+    jest.advanceTimersByTime(1000);
+    expect(grid.tick).toHaveBeenCalledTimes(1);
+    jest.advanceTimersByTime(2000);
+    expect(grid.tick).toHaveBeenCalledTimes(2);
+
+    game.stop();
+    expect(subscription.closed).toBe(true);
     return subscription.unsubscribe();
   });
 });
