@@ -17,12 +17,12 @@
   "license": "ISC",
   "dependencies": {
     "pixi.js": "^6.2.2",
-    "rxjs": "^7.5.2"
+    "rxjs": "^7.5.4"
   },
   "devDependencies": {
-    "@jest/globals": "^27.5.0",
+    "@jest/globals": "^27.5.1",
     "husky": "^7.0.4",
-    "jest": "^27.5.0",
+    "jest": "^27.5.1",
     "lint-staged": "^12.3.3",
     "prettier": "^2.5.1",
     "snowpack": "^3.8.8"
