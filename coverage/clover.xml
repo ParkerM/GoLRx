@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1644195446764" clover="3.2.0">
-  <project timestamp="1644195446764" name="All files">
+<coverage generated="1644702452133" clover="3.2.0">
+  <project timestamp="1644702452133" name="All files">
     <metrics statements="554" coveredstatements="532" conditionals="80" coveredconditionals="79" methods="52" coveredmethods="43" elements="686" coveredelements="654" complexity="0" loc="554" ncloc="554" packages="1" files="4" classes="4"/>
     <file name="cell.js" path="/home/runner/work/GoLRx/GoLRx/src/lib/cell.js">
       <metrics statements="151" coveredstatements="151" conditionals="20" coveredconditionals="20" methods="11" coveredmethods="10"/>

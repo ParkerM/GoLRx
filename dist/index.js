@@ -34,6 +34,8 @@ slider.addEventListener('change', applyInterval);
 const grid = new Grid(xLen, yLen);
 // load game
 const game = new Game(grid, renderer.cellToggled);
+// init tick value from element
+slider.dispatchEvent(new Event('change'));
 
 // load preset
 const glider = [
