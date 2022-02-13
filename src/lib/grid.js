@@ -142,15 +142,11 @@ class Grid {
    * @returns {Cell[]}
    */
   #getAdjacentCells(xPos, yPos) {
+    // prettier-ignore
     const neighborCells = [
-      [-1 + xPos, -1 + yPos],
-      [0 + xPos, -1 + yPos],
-      [1 + xPos, -1 + yPos],
-      [-1 + xPos, 0 + yPos],
-      [1 + xPos, 0 + yPos],
-      [-1 + xPos, 1 + yPos],
-      [0 + xPos, 1 + yPos],
-      [1 + xPos, 1 + yPos],
+      [-1 + xPos, -1 + yPos], [0 + xPos, -1 + yPos], [1 + xPos, -1 + yPos],
+      [-1 + xPos,  0 + yPos],                        [1 + xPos,  0 + yPos],
+      [-1 + xPos,  1 + yPos], [0 + xPos,  1 + yPos], [1 + xPos,  1 + yPos],
     ];
 
     return neighborCells
