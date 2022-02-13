@@ -21,7 +21,7 @@ class State {
   }
 
   toString() {
-    return `State.${this.alive}`;
+    return this.alive ? 'alive' : 'dead';
   }
 }
 
