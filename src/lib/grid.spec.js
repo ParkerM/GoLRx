@@ -5,116 +5,116 @@ const M = true;
 const _ = false;
 
 describe('Grid', () => {
-  /** @type {Grid} */
-  let grid;
+  describe('transition', () => {
+    it('emits all changed cells', (done) => {
+      const grid = new Grid(3, 3);
+      grid.activateCell(1, 1);
 
-  beforeEach(() => {
-    grid = new Grid(3, 3);
+      expect.assertions(3);
+      expect(grid.getGrid()).toEqual([
+        [_, _, _],
+        [_, M, _],
+        [_, _, _],
+      ]);
+
+      grid.changeEmitter.asObservable().subscribe({
+        next: (change) => {
+          expect(change).toEqual([1, 1, State.DEAD]);
+          done();
+        },
+      });
+
+      grid.transition();
+      expect(grid.getGrid()).toEqual([
+        [_, _, _],
+        [_, _, _],
+        [_, _, _],
+      ]);
+    });
   });
 
-  it('emits all changed cells after transition', (done) => {
-    grid.activateCell(1, 1);
+  describe('tick', () => {
+    it('advances the game once and stops', () => {
+      const grid = new Grid(3, 3);
+      grid.activateCell(0, 1);
+      grid.activateCell(1, 1);
+      grid.activateCell(2, 1);
 
-    expect.assertions(3);
-    expect(grid.getGrid()).toEqual([
-      [_, _, _],
-      [_, M, _],
-      [_, _, _],
-    ]);
+      expect(grid.running).toBe(false);
+      expect(grid.getGrid()).toEqual([
+        [_, _, _],
+        [M, M, M],
+        [_, _, _],
+      ]);
 
-    grid.changeEmitter.asObservable().subscribe({
-      next: (change) => {
-        expect(change).toEqual([1, 1, State.DEAD]);
-        done();
-      },
+      grid.tick();
+      expect(grid.running).toBe(false);
+      expect(grid.getGrid()).toEqual([
+        [_, M, _],
+        [_, M, _],
+        [_, M, _],
+      ]);
+
+      grid.tick();
+      expect(grid.running).toBe(false);
+      expect(grid.getGrid()).toEqual([
+        [_, _, _],
+        [M, M, M],
+        [_, _, _],
+      ]);
     });
 
-    grid.transition();
-    expect(grid.getGrid()).toEqual([
-      [_, _, _],
-      [_, _, _],
-      [_, _, _],
-    ]);
-  });
+    it('grid can be modified between ticks', () => {
+      const grid = new Grid(3, 3);
+      grid.activateCell(0, 1);
+      grid.activateCell(1, 1);
+      grid.activateCell(2, 1);
 
-  it('tick advances the game once and stops', () => {
-    grid.activateCell(1, 0);
-    grid.activateCell(1, 1);
-    grid.activateCell(1, 2);
+      // set oscillator and tick once
+      expect(grid.getGrid()).toEqual([
+        [_, _, _],
+        [M, M, M],
+        [_, _, _],
+      ]);
+      grid.tick();
+      expect(grid.getGrid()).toEqual([
+        [_, M, _],
+        [_, M, _],
+        [_, M, _],
+      ]);
 
-    expect(grid.running).toBe(false);
-    expect(grid.getGrid()).toEqual([
-      [_, _, _],
-      [M, M, M],
-      [_, _, _],
-    ]);
+      // change to glider and tick again
+      grid.setAllCellStates(State.DEAD);
+      grid.activateCells([
+        [0, 1],
+        [1, 2],
+        [2, 0],
+        [2, 1],
+        [2, 2],
+      ]);
+      expect(grid.getGrid()).toEqual([
+        [_, _, M],
+        [M, _, M],
+        [_, M, M],
+      ]);
 
-    grid.tick();
-    expect(grid.running).toBe(false);
-    expect(grid.getGrid()).toEqual([
-      [_, M, _],
-      [_, M, _],
-      [_, M, _],
-    ]);
-
-    grid.tick();
-    expect(grid.running).toBe(false);
-    expect(grid.getGrid()).toEqual([
-      [_, _, _],
-      [M, M, M],
-      [_, _, _],
-    ]);
-  });
-
-  it('grid can be modified between ticks', () => {
-    grid.activateCell(1, 0);
-    grid.activateCell(1, 1);
-    grid.activateCell(1, 2);
-
-    // set oscillator and tick once
-    expect(grid.getGrid()).toEqual([
-      [_, _, _],
-      [M, M, M],
-      [_, _, _],
-    ]);
-    grid.tick();
-    expect(grid.getGrid()).toEqual([
-      [_, M, _],
-      [_, M, _],
-      [_, M, _],
-    ]);
-
-    // change to glider and tick again
-    grid.setAllCellStates(State.DEAD);
-    grid.activateCells([
-      [1, 0],
-      [2, 1],
-      [0, 2],
-      [1, 2],
-      [2, 2],
-    ]);
-    expect(grid.getGrid()).toEqual([
-      [_, _, M],
-      [M, _, M],
-      [_, M, M],
-    ]);
-
-    grid.tick();
-    expect(grid.running).toBe(false);
-    expect(grid.getGrid()).toEqual([
-      [_, M, _],
-      [_, _, M],
-      [_, M, M],
-    ]);
+      grid.tick();
+      expect(grid.running).toBe(false);
+      expect(grid.getGrid()).toEqual([
+        [_, M, _],
+        [_, _, M],
+        [_, M, M],
+      ]);
+    });
   });
 });
 
 describe('Patterns', () => {
   it('Blinker (period 2)', () => {
     const grid = new Grid(5, 5);
-    grid.activateCell(2, 1);
+    grid.activateCell(1, 2);
     grid.activateCell(2, 2);
-    grid.activateCell(2, 3);
+    grid.activateCell(3, 2);
 
     // initial state
     expect(grid.getGrid()).toEqual([
@@ -149,11 +149,11 @@ describe('Patterns', () => {
   it('Glider', () => {
     const grid = new Grid(5, 5);
     grid.activateCells([
-      [2, 0],
-      [3, 1],
-      [1, 2],
+      [0, 2],
+      [1, 3],
+      [2, 1],
       [2, 2],
-      [3, 2],
+      [2, 3],
     ]);
 
     // initial state
@@ -175,6 +175,46 @@ describe('Patterns', () => {
     grid.transition();
     expect(grid.getGrid()).toEqual(glider[4]);
     expect(grid.getGrid()).toEqual(shiftedGrid(glider[0], 1, 1));
+  });
+
+  it('MxN infinite', () => {
+    const grid = new Grid(41, 3);
+    // prettier-ignore
+    const colAlive = [
+      1, 2, 3, 4, 5, 6, 7, 8,
+      10, 11, 12, 13, 14,
+      18, 19, 20,
+      27, 28, 29, 30, 31, 32, 33,
+      35, 36, 37, 38, 39,
+    ];
+    let arr = new Array(41).fill('_');
+    colAlive.forEach((x) => (arr[x] = 'M'));
+
+    const alive = colAlive.map((col) => [col, 1]);
+    grid.activateCells(alive);
+
+    // prettier-ignore
+    expect(grid.getGrid()).toEqual([
+      [_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _],
+      [_, M, M, M, M, M, M, M, M, _, M, M, M, M, M, _, _, _, M, M, M, _, _, _, _, _, _, M, M, M, M, M, M, M, _, M, M, M, M, M, _],
+      [_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _],
+    ]);
+
+    grid.tick();
+    // prettier-ignore
+    expect(grid.getGrid()).toEqual([
+      [_, _, M, M, M, M, M, M, _, _, _, M, M, M, _, _, _, _, _, M, _, _, _, _, _, _, _, _, M, M, M, M, M, _, _, _, M, M, M, _, _],
+      [_, _, M, M, M, M, M, M, _, _, _, M, M, M, _, _, _, _, _, M, _, _, _, _, _, _, _, _, M, M, M, M, M, _, _, _, M, M, M, _, _],
+      [_, _, M, M, M, M, M, M, _, _, _, M, M, M, _, _, _, _, _, M, _, _, _, _, _, _, _, _, M, M, M, M, M, _, _, _, M, M, M, _, _],
+    ]);
+
+    grid.tick();
+    // prettier-ignore
+    expect(grid.getGrid()).toEqual([
+      [_, _, M, _, _, _, _, M, _, _, _, M, _, M, _, _, _, _, _, _, _, _, _, _, _, _, _, _, M, _, _, _, M, _, _, _, M, _, M, _, _],
+      [_, M, _, _, _, _, _, _, M, _, M, _, _, _, M, _, _, _, M, M, M, _, _, _, _, _, _, M, _, _, _, _, _, M, _, M, _, _, _, M, _],
+      [_, _, M, _, _, _, _, M, _, _, _, M, _, M, _, _, _, _, _, _, _, _, _, _, _, _, _, _, M, _, _, _, M, _, _, _, M, _, M, _, _],
+    ]);
   });
 });
 
@@ -269,5 +309,13 @@ const ALL_FALSE = [
   [_, _, _, _, _],
   [_, _, _, _, _],
   [_, _, _, _, _],
+  [_, _, _, _, _],
+];
+
+const fart = [
+  [_, _, _, _, _],
+  [_, _, M, _, _],
+  [M, _, M, _, _],
+  [_, M, M, _, _],
   [_, _, _, _, _],
 ];

@@ -1,5 +1,5 @@
 import { BehaviorSubject, filter, Subject, Subscription } from 'rxjs';
-import { allPairs, State } from './util.js';
+import { RowMajor, State } from './util.js';
 import { Cell } from './cell.js';
 
 class Grid {
@@ -9,8 +9,11 @@ class Grid {
    */
   #oobCell;
 
-  /** @type {Array<Array<Cell>>} */
+  /** @type {Array<Cell>} */
   #plane;
+
+  /** @member {Ordering} */
+  #ordering;
 
   /** @type {number} */
   width;
@@ -44,19 +47,16 @@ class Grid {
     this.#oobCell = new Cell(null, NaN, NaN);
     this.width = width;
     this.height = height;
+    this.#ordering = new RowMajor(width);
     this.#initPlane();
     this.#introduceNeighbors();
   }
 
   #initPlane() {
-    const hCells = this.width;
-    const vCells = this.height;
-    this.#plane = [];
-    for (let x = 0; x < hCells; x++) {
-      this.#plane[x] = [];
-      for (let y = 0; y < vCells; y++) {
-        this.#plane[x].push(new Cell(this.notifier, x, y, this.changeEmitter));
-      }
+    this.#plane = new Array(this.width * this.height);
+    for (let i = 0; i < this.#plane.length; i++) {
+      const [row, col] = this.#ordering.fromI(i);
+      this.#plane[i] = new Cell(this.notifier, col, row, this.changeEmitter);
     }
   }
 
@@ -65,37 +65,35 @@ class Grid {
    * Each cell's subscription is stored in {@link subscriptions}.
    */
   #introduceNeighbors() {
-    this.#coordinatePairs()
-      .map(([x, y]) => [x, y, this.getCellAt(x, y)])
-      .forEach(([x, y, cell]) =>
-        this.#getAdjacentCells(x, y).forEach((neighbor) =>
-          neighbor.addNeighbor(cell),
-        ),
-      );
+    this.#plane.forEach((cell, i) =>
+      this.#getNeighborhood(i).forEach((neighbor) =>
+        neighbor.addNeighbor(cell),
+      ),
+    );
   }
 
   /**
-   * @param {number} x
-   * @param {number} y
+   * @param {number} col
+   * @param {number} row
    */
-  activateCell(x, y) {
-    this.getCellAt(x, y).state = State.ALIVE;
+  activateCell(col, row) {
+    this.setCellState(col, row, State.ALIVE);
   }
 
   /**
-   * @param {[number, number][]} coords - [x,y] pairs
+   * @param {[number, number][]} coords - [col,row] pairs
    */
   activateCells(coords) {
-    coords.forEach(([x, y]) => (this.getCellAt(x, y).state = State.ALIVE));
+    coords.forEach(([col, row]) => this.setCellState(col, row, State.ALIVE));
   }
 
   /**
-   * @param {number} x
-   * @param {number} y
+   * @param {number} col
+   * @param {number} row
    * @param {State} state - whether the cell is alive or dead.
    */
-  setCellState(x, y, state) {
-    this.getCellAt(x, y).state = state;
+  setCellState(col, row, state) {
+    this.getCellAt(col, row).state = state;
   }
 
   /**
@@ -107,51 +105,94 @@ class Grid {
   }
 
   /**
-   * @param {number} x
-   * @param {number} y
+   * @param {number} col
+   * @param {number} row
    * @returns {Cell}
    */
-  getCellAt(x, y) {
-    if (!this.#insideBounds([x, y])) return this.#oobCell;
-    return this.#plane[x][y];
+  getCellAt(col, row) {
+    if (!this.#insideBounds([col, row])) {
+      console.log(`returning oob cell at col=${col},row=${row}`);
+      return this.#oobCell;
+    }
+    const i = this.#ordering.toI(row, col);
+    return this.#plane[i];
   }
 
   /**
    * @returns {boolean[][]} - A grid of live (true) and dead (false) cells
    */
   getGrid() {
-    return this.#plane.map((row) => row.map((cell) => cell.state.isAlive));
+    // assumes row-major
+    const majorAttribute = this.width;
+    const minorAttribute = this.height;
+
+    const arr = new Array(minorAttribute);
+    for (let row = 0; row < arr.length; row++) {
+      arr[row] = new Array(majorAttribute);
+      for (let col = 0; col < arr[row].length; col++) {
+        arr[row][col] = this.getCellAt(col, row).state.isAlive;
+      }
+    }
+
+    return arr;
   }
 
   /**
    * Returns true if (x,y) are within bounds
    *
-   * @param x {number}
-   * @param y {number}
+   * @param col {number}
+   * @param row {number}
    * @return {boolean}
    */
-  #insideBounds = ([x, y]) =>
-    x >= 0 && y >= 0 && x < this.width && y < this.height;
+  #insideBounds = ([col, row]) => {
+    const i = this.#ordering.toI(row, col);
+    return this.#insidePlane(i);
+  };
 
   /**
-   * Gets cells immediately adjacent to the given coordinates, excluding any
+   * Returns true if i is within plane
+   *
+   * @param {number} i - index
+   * @returns {boolean} - 0 <= i < plane.length
+   */
+  #insidePlane = (i) => i >= 0 && i < this.width * this.height;
+
+  /**
+   * Gets cells immediately adjacent to the given accessor, excluding any
    * cells out of bounds.
    *
-   * @param {number} xPos
-   * @param {number} yPos
+   * @param {number} i - cell's index in the plane
    * @returns {Cell[]}
    */
-  #getAdjacentCells(xPos, yPos) {
-    // prettier-ignore
-    const neighborCells = [
-      [-1 + xPos, -1 + yPos], [0 + xPos, -1 + yPos], [1 + xPos, -1 + yPos],
-      [-1 + xPos,  0 + yPos],                        [1 + xPos,  0 + yPos],
-      [-1 + xPos,  1 + yPos], [0 + xPos,  1 + yPos], [1 + xPos,  1 + yPos],
-    ];
+  #getNeighborhood(i) {
+    const isTopEdge = i < this.width;
+    const isBottomEdge = i >= this.#plane.length - this.width;
+    const isLeftEdge = i % this.width === 0;
+    const isRightEdge = i % this.width === this.width - 1;
+    const n = i - this.width;
+    const w = i - 1;
+    const e = i + 1;
+    const s = i + this.width;
+    const nw = n - 1;
+    const ne = n + 1;
+    const sw = s - 1;
+    const se = s + 1;
 
-    return neighborCells
-      .filter(this.#insideBounds)
-      .map(([x, y]) => this.getCellAt(x, y));
+    const neighborhood = [];
+    if (!isTopEdge) {
+      neighborhood.push(n);
+    }
+    if (!isBottomEdge) {
+      neighborhood.push(s);
+    }
+    if (!isLeftEdge) {
+      neighborhood.push(w, nw, sw);
+    }
+    if (!isRightEdge) {
+      neighborhood.push(e, ne, se);
+    }
+
+    return neighborhood.filter(this.#insidePlane).map((i) => this.#plane[i]);
   }
 
   tick() {
@@ -170,15 +211,6 @@ class Grid {
   }
 
   /**
-   * @returns {Array<[number, number]>} all coordinate pairs on the grid
-   */
-  #coordinatePairs() {
-    const xRange = Array.from({ length: this.width }, (v, k) => k);
-    const yRange = Array.from({ length: this.height }, (v, k) => k);
-    return allPairs(xRange, yRange);
-  }
-
-  /**
    * Kicks off the first notification for each cell.
    */
   #broadcastStart() {
@@ -190,14 +222,14 @@ class Grid {
   }
 
   get stopSignal() {
-    return this.#running.pipe(filter((isRunning) => !isRunning));
+    return this.#running.asObservable().pipe(filter((isRunning) => !isRunning));
   }
 
   /**
    * @returns {Cell[]} - all cells on the grid.
    */
   get allCells() {
-    return this.#coordinatePairs().map(([x, y]) => this.getCellAt(x, y));
+    return this.#plane;
   }
 }
 
