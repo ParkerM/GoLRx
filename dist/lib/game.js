@@ -74,11 +74,6 @@ class Game {
   }
 
   /**
-   * @returns {Set<Cell>}
-   */
-  get cells() {}
-
-  /**
    * Progresses the game by one tick.
    */
   tick() {

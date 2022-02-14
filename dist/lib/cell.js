@@ -146,6 +146,10 @@ class Cell {
     }
     return of(this.state);
   }
+
+  toString() {
+    return `Cell(${this.#posX},${this.#posY}): ${this.state}`;
+  }
 }
 
 export { Cell };
