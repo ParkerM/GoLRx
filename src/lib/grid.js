@@ -165,14 +165,15 @@ class Grid {
    * @returns {Cell[]}
    */
   #getNeighborhood(i) {
-    const isTopEdge = i < this.width;
-    const isBottomEdge = i >= this.#plane.length - this.width;
-    const isLeftEdge = i % this.width === 0;
-    const isRightEdge = i % this.width === this.width - 1;
-    const n = i - this.width;
+    const ld = this.#ordering.ld;
+    const isTopEdge = i < ld;
+    const isBottomEdge = i >= this.#plane.length - ld;
+    const isLeftEdge = i % ld === 0;
+    const isRightEdge = i % ld === ld - 1;
+    const n = i - ld;
     const w = i - 1;
     const e = i + 1;
-    const s = i + this.width;
+    const s = i + ld;
     const nw = n - 1;
     const ne = n + 1;
     const sw = s - 1;
