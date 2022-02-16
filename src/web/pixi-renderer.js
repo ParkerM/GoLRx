@@ -5,8 +5,12 @@ import { State } from '../lib/util.js';
 const BG_COLOR = 0xcccccc;
 const CELL_COLOR = 0xffffff;
 
-const CELL_SIZE = 50;
-const CELL_PADDING = 5;
+// const CELL_SIZE = 50;
+// const CELL_PADDING = 5;
+
+
+const CELL_SIZE = 10;
+const CELL_PADDING = 1;
 
 const ALPHA_SELECTED = 1;
 const ALPHA_HOVER = 0.5;
@@ -14,6 +18,12 @@ const ALPHA_CELL = 0.1;
 
 /** The length of a cell edge after applying padding. */
 const CELL_SIZE_PADDED = CELL_SIZE - CELL_PADDING;
+
+const CELL_TEXTURE = PIXI.Texture.from(PIXI.Texture.WHITE.castToBaseTexture(), {
+  height: CELL_SIZE_PADDED,
+  width: CELL_SIZE_PADDED,
+});
+// CELL_TEXTURE.height = CELL_SIZE
 
 class PixiRenderer {
   /** @type {import('@pixi/app').Application} */
@@ -25,8 +35,15 @@ class PixiRenderer {
   /** @type {import('@pixi/display').Container} */
   #gridContainer;
 
-  /** @type {import('@pixi/graphics').Graphics[][]} */
+  /** @type {import('@pixi/sprite').Sprite[][]} */
   #cells = [];
+
+  /**
+   * Reference cell graphic to provide shared geometry for instances.
+   *
+   * @member {import('@pixi/graphics').Graphics}
+   */
+  #cellTemplate;
 
   /**
    * Application width.
@@ -78,6 +95,8 @@ class PixiRenderer {
    * @returns {[number, number]} - [cellsWide, cellsHigh] of the resulting grid.
    */
   drawGrid() {
+    const cellGeometry = this.createCellBase(CELL_SIZE_PADDED, CELL_SIZE_PADDED);
+
     this.#gridContainer = this.#rootContainer.addChild(new PIXI.Container());
     this.#gridContainer.position.x = CELL_PADDING + CELL_PADDING / 2;
     this.#gridContainer.position.y = CELL_PADDING + CELL_PADDING / 2;
@@ -92,11 +111,24 @@ class PixiRenderer {
       for (let y = 0; y < vCells; y++) {
         const xPos = CELL_SIZE * x;
         const yPos = CELL_SIZE * y;
+
+        // /** @type {import('@pixi/sprite').Sprite} */
+        // const sprite = new PIXI.Sprite(CELL_TEXTURE);
+        // sprite.position.set(xPos, yPos);
+        // sprite.on('mousedown', (ev) => this.selectCell(ev, x, y));
+        // sprite.on('mouseover', (ev) => this.hoverOver(ev));
+        // sprite.interactive = true;
+        // sprite.buttonMode = true;
+        // sprite.alpha = ALPHA_CELL;
+        // sprite.id = `${x},${y}`;
+        // sprite.cellX = x;
+        // sprite.cellY = y;
+        // this.#cells[x].push(this.#gridContainer.addChild(sprite));
         const graphics = new PIXI.Graphics()
           .beginFill(CELL_COLOR)
           .drawRect(xPos, yPos, CELL_SIZE_PADDED, CELL_SIZE_PADDED)
           .on('mousedown', (ev) => this.selectCell(ev, x, y))
-          .on('mouseover', (ev) => this.hoverOver(ev));
+          // .on('mouseover', (ev) => this.hoverOver(ev));
         graphics.interactive = true;
         graphics.buttonMode = true;
         graphics.alpha = ALPHA_CELL;
@@ -105,15 +137,15 @@ class PixiRenderer {
         graphics.cellY = y;
         this.#cells[x].push(this.#gridContainer.addChild(graphics));
 
-        let text = new PIXI.Text(`${x},${y}`, {
-          fontFamily: 'Arial',
-          fontSize: CELL_SIZE / 2.5,
-          fill: 0x000000,
-          align: 'left',
-        });
-        text.position.x = xPos;
-        text.position.y = yPos;
-        this.#gridContainer.addChild(text);
+        // let text = new PIXI.Text(`${x},${y}`, {
+        //   fontFamily: 'Arial',
+        //   fontSize: CELL_SIZE / 2.5,
+        //   fill: 0x000000,
+        //   align: 'left',
+        // });
+        // text.position.x = xPos;
+        // text.position.y = yPos;
+        // this.#gridContainer.addChild(text);
       }
     }
     return [hCellsNum, vCellsNum];
@@ -159,6 +191,18 @@ class PixiRenderer {
     console.log(event);
     console.log(this);
     console.log(`Known cell: ${this.#cells[x][y].id}`);
+  }
+
+  /**
+   * @param {number} width
+   * @param {number} height
+   * @returns {import('@pixi/graphics').GraphicsGeometry}
+   */
+  createCellBase(width, height) {
+    if (!this.#cellTemplate) this.#cellTemplate = new PIXI.Graphics();
+    this.#cellTemplate.drawRect(0, 0, width, height);
+    this.#cellTemplate.visible = false;
+    return this.#cellTemplate.geometry;
   }
 
   /** @param target {import('@pixi/display').DisplayObject} */
