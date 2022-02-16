@@ -1,13 +1,13 @@
 import * as PIXI from 'pixi.js';
 import { Subject } from 'rxjs';
 import { State } from '../lib/util.js';
+import { RendererBase } from './renderer-base.js';
 
 const BG_COLOR = 0xcccccc;
 const CELL_COLOR = 0xffffff;
 
 // const CELL_SIZE = 50;
 // const CELL_PADDING = 5;
-
 
 const CELL_SIZE = 10;
 const CELL_PADDING = 1;
@@ -19,13 +19,7 @@ const ALPHA_CELL = 0.1;
 /** The length of a cell edge after applying padding. */
 const CELL_SIZE_PADDED = CELL_SIZE - CELL_PADDING;
 
-const CELL_TEXTURE = PIXI.Texture.from(PIXI.Texture.WHITE.castToBaseTexture(), {
-  height: CELL_SIZE_PADDED,
-  width: CELL_SIZE_PADDED,
-});
-// CELL_TEXTURE.height = CELL_SIZE
-
-class PixiRenderer {
+class PixiRenderer extends RendererBase {
   /** @type {import('@pixi/app').Application} */
   #app;
 
@@ -70,6 +64,7 @@ class PixiRenderer {
    * @param height {number} - desired app height
    */
   constructor(doc, width = 1200, height = 600) {
+    super();
     this.#width = width;
     this.#height = height;
     this.#app = new PIXI.Application({
@@ -91,11 +86,28 @@ class PixiRenderer {
   }
 
   /**
-   * Draws a grid of cells to a child grid container.
-   * @returns {[number, number]} - [cellsWide, cellsHigh] of the resulting grid.
+   * @param {number} width
+   * @param {number} height
+   * @returns {import('@pixi/graphics').GraphicsGeometry}
    */
+  createCellBase(width, height) {
+    if (!this.#cellTemplate) this.#cellTemplate = new PIXI.Graphics();
+    this.#cellTemplate.drawRect(0, 0, width, height);
+    this.#cellTemplate.visible = false;
+    return this.#cellTemplate.geometry;
+  }
+
+  /** @param target {import('@pixi/display').DisplayObject} */
+  #activateCell(target) {
+    target.isSelected = true;
+    target.alpha = ALPHA_SELECTED;
+  }
+
   drawGrid() {
-    const cellGeometry = this.createCellBase(CELL_SIZE_PADDED, CELL_SIZE_PADDED);
+    const cellGeometry = this.createCellBase(
+      CELL_SIZE_PADDED,
+      CELL_SIZE_PADDED,
+    );
 
     this.#gridContainer = this.#rootContainer.addChild(new PIXI.Container());
     this.#gridContainer.position.x = CELL_PADDING + CELL_PADDING / 2;
@@ -127,8 +139,8 @@ class PixiRenderer {
         const graphics = new PIXI.Graphics()
           .beginFill(CELL_COLOR)
           .drawRect(xPos, yPos, CELL_SIZE_PADDED, CELL_SIZE_PADDED)
-          .on('mousedown', (ev) => this.selectCell(ev, x, y))
-          // .on('mouseover', (ev) => this.hoverOver(ev));
+          .on('mousedown', (ev) => this.selectCell(ev, x, y));
+        // .on('mouseover', (ev) => this.hoverOver(ev));
         graphics.interactive = true;
         graphics.buttonMode = true;
         graphics.alpha = ALPHA_CELL;
@@ -173,11 +185,6 @@ class PixiRenderer {
     }
   }
 
-  /**
-   * @param event {import('@pixi/interaction').InteractionEvent}
-   * @param x {number} - the relative x coordinate of this cell in the grid
-   * @param y {number} - the relative y coordinate of this cell in the grid
-   */
   selectCell(event, x, y) {
     const target = event.target;
     if (target.alpha !== ALPHA_SELECTED) {
@@ -193,45 +200,18 @@ class PixiRenderer {
     console.log(`Known cell: ${this.#cells[x][y].id}`);
   }
 
-  /**
-   * @param {number} width
-   * @param {number} height
-   * @returns {import('@pixi/graphics').GraphicsGeometry}
-   */
-  createCellBase(width, height) {
-    if (!this.#cellTemplate) this.#cellTemplate = new PIXI.Graphics();
-    this.#cellTemplate.drawRect(0, 0, width, height);
-    this.#cellTemplate.visible = false;
-    return this.#cellTemplate.geometry;
-  }
-
-  /** @param target {import('@pixi/display').DisplayObject} */
-  #activateCell(target) {
-    target.isSelected = true;
-    target.alpha = ALPHA_SELECTED;
-  }
-
   /** @param target {import('@pixi/display').DisplayObject} */
   #deactivateCell(target) {
     target.isSelected = false;
     target.alpha = ALPHA_CELL;
   }
 
-  /**
-   * Manually sets the toggled state of a visible cell.
-   * @param x {number} - x pos of this cell in the grid
-   * @param y {number} - y pos of this cell in the grid
-   * @param state {State}
-   */
   setCellState(x, y, state) {
     console.log(`Setting cell state at ${x},${y} to ${state}`);
     if (state.isAlive) this.#activateCell(this.#cells[x][y]);
     else this.#deactivateCell(this.#cells[x][y]);
   }
 
-  /**
-   * @param coords {[number, number][]} x,y pairs to activate
-   */
   activateCells(coords) {
     coords.forEach(([x, y]) => this.#activateCell(this.#cells[x][y]));
   }
