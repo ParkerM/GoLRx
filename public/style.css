@@ -11,6 +11,17 @@ canvas {
   display: block;
   width: 1200px;
   height: 600px;
+  position: absolute;
+}
+
+#game-canvas {
+  z-index: 0;
+  image-rendering: pixelated;
+}
+
+#grid-canvas {
+  z-index: 1;
+  /*image-rendering: pixelated;*/
 }
 
 .wrapper {
@@ -43,6 +54,8 @@ canvas {
   }
   .game-container {
     order: 2;
+    width: 1200px;
+    height: 600px;
   }
   .spacer {
     order: 3;
