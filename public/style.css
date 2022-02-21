@@ -21,7 +21,7 @@ canvas {
 
 #grid-canvas {
   z-index: 1;
-  /*image-rendering: pixelated;*/
+  image-rendering: pixelated;
 }
 
 .wrapper {
