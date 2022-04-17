@@ -22,6 +22,7 @@ canvas {
 #grid-canvas {
   z-index: 1;
   image-rendering: pixelated;
+  pointer-events: none; /* Allow click events to fall through to game canvas */
 }
 
 .wrapper {

@@ -1,4 +1,5 @@
 import { RendererBase } from './renderer-base.js';
+import { State } from '../lib/util.js';
 
 /*
 Idea:
@@ -54,6 +55,9 @@ class CanvasRenderer extends RendererBase {
     this.ctx = this.canvas.getContext('2d');
     this.ctx.imageSmoothingEnabled = false;
 
+    // attach mouse click listener
+    this.canvas.addEventListener('click', this.#handleMouseDown);
+
     // set grid to full size, so we can draw fine lines with it
     this.gridCanvas = document.getElementById('grid-canvas');
     this.gridCanvas.width = this.gridCanvas.clientWidth;
@@ -61,6 +65,31 @@ class CanvasRenderer extends RendererBase {
   }
 
   /**
+   * Convert mouse event to relative grid coords.
+   *
+   * @param event {MouseEvent}
+   * @returns {[number, number]} - canvas-relative (x,y)
+   */
+  #relativePosition = (event) => {
+    const rect = this.canvas.getBoundingClientRect();
+    const scaleX = this.canvas.width / rect.width;
+    const scaleY = this.canvas.height / rect.height;
+    const x = Math.floor((event.clientX - rect.left) * scaleX);
+    const y = Math.floor((event.clientY - rect.top) * scaleY);
+    return [x, y];
+  };
+
+  /**
+   * @param event {MouseEvent}
+   */
+  #handleMouseDown = (event) => {
+    const [x, y] = this.#relativePosition(event);
+    console.debug(`  Click at relative coords: x=${x}, y=${y}`);
+    this.selectCell(event, x, y);
+  };
+
+  /**
+   * Clear a cell and re-draw it with the given style.
    *
    * @param {number} x - relative x coordinate of cell
    * @param {number} y - relative y coordinate of cell
@@ -166,20 +195,19 @@ class CanvasRenderer extends RendererBase {
       ) {
         const coords = xCell.toString(10) + ',' + yCell.toString(10);
         gridCtx.fillText(coords, x + cellDim, y + cellDim + 1, cellDim - 1);
-        // gridCtx.fillText(`${xCell.toString(10).padStart(2, ' ')}`, x + cellDim - 1, y + 1, maxWidth);
-        // gridCtx.fillText(
-        //   `${yCell.toString(10).padStart(2, ' ')}`,
-        //   x + cellDim - 1,
-        //   y + cellDim / 2,
-        //   maxWidth,
-        // );
       }
     }
 
     gridCtx.restore();
   }
 
-  selectCell(event, x, y) {}
+  selectCell(event, x, y) {
+    const pixel = this.ctx.getImageData(x, y, 1, 1);
+    const currentState = this.cellStateAt(pixel);
+    const nextState = currentState.inverse;
+    this.setCellState(x, y, nextState);
+    this.cellToggled.next([x, y, nextState]);
+  }
 
   setCellState(x, y, state) {
     if (state.isAlive) {
@@ -187,6 +215,18 @@ class CanvasRenderer extends RendererBase {
     } else {
       this.fillCell(x, y, CELL_FILL_DEAD);
     }
+  }
+
+  /**
+   * @param pixel {ImageData} - 1x1 context ImageData to observe
+   * @returns {State} - state of the cell at the given pixel
+   */
+  cellStateAt(pixel) {
+    const alpha = pixel.data[3];
+    if (alpha === 0) {
+      return State.DEAD;
+    }
+    return State.ALIVE;
   }
 }
 
