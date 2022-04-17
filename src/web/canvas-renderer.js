@@ -1,5 +1,19 @@
 import { RendererBase } from './renderer-base.js';
 
+/*
+Idea:
+  Draw field:
+    - occurs on any reset action (resizing, etc)
+    - draws all grid lines AND occupied cells
+  Draw cell:
+    - fills inner cell area with COLOR_OCCUPIED
+  Undraw cell:
+    - fills inner cell area with COLOR_VACANT
+ */
+
+const CELL_FILL_OCCUPIED = 'rgba(0, 0, 0, 0.2)';
+const CELL_FILL_VACANT = 'rgba(0, 0, 0, 0.0)';
+
 /** @type {string | CanvasGradient | CanvasPattern} */
 const CELL_FILL_ALIVE = 'rgba(0, 0, 0, 0.2)';
 const CELL_FILL_DEAD = 'rgba(0, 0, 0, 0)';
@@ -21,11 +35,6 @@ class CanvasRenderer extends RendererBase {
   constructor(document) {
     super();
     this.initCanvas(document);
-
-    // test data
-    for (let i = 0; i < this.canvas.width; i++) {
-      this.fillCell(i, i);
-    }
   }
 
   get cellsWide() {
@@ -59,10 +68,13 @@ class CanvasRenderer extends RendererBase {
    */
   fillCell(x, y, fillStyle = CELL_FILL_ALIVE) {
     this.ctx.fillStyle = fillStyle;
+    this.ctx.clearRect(x, y, 1, 1);
     this.ctx.fillRect(x, y, 1, 1);
   }
 
-  activateCells(coords) {}
+  activateCells(coords) {
+    coords.forEach(([row, col]) => this.fillCell(row, col));
+  }
 
   drawGrid() {
     const gridCtx = this.gridCanvas.getContext('2d');
@@ -87,7 +99,7 @@ class CanvasRenderer extends RendererBase {
     const cellDim = this.cellLenPxl;
 
     // draw horizontal lines
-    for (let i = 0; i < this.gridCanvas.height; i += cellDim) {
+    for (let i = cellDim; i < this.gridCanvas.height; i += cellDim) {
       let x1 = aliasOffset;
       let x2 = this.gridCanvas.width - aliasOffset;
       let y = i - aliasOffset;
@@ -96,7 +108,7 @@ class CanvasRenderer extends RendererBase {
     }
 
     // draw vertical lines
-    for (let i = 0; i < this.gridCanvas.width; i += cellDim) {
+    for (let i = cellDim; i < this.gridCanvas.width; i += cellDim) {
       let y1 = aliasOffset;
       let y2 = this.gridCanvas.height - aliasOffset;
       let x = i - aliasOffset;
@@ -169,7 +181,13 @@ class CanvasRenderer extends RendererBase {
 
   selectCell(event, x, y) {}
 
-  setCellState(x, y, state) {}
+  setCellState(x, y, state) {
+    if (state.isAlive) {
+      this.fillCell(x, y, CELL_FILL_ALIVE);
+    } else {
+      this.fillCell(x, y, CELL_FILL_DEAD);
+    }
+  }
 }
 
 export { CanvasRenderer };
