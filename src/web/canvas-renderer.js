@@ -138,11 +138,10 @@ class CanvasRenderer extends RendererBase {
 
     const cellDim = this.cellLenPxl;
 
-    gridCtx.font = '8px Verdana';
+    gridCtx.font = "18px 'Farsan', cursive";
     gridCtx.fillStyle = '#777';
-    gridCtx.textBaseline = 'top';
+    gridCtx.textBaseline = 'bottom';
     gridCtx.textAlign = 'right';
-    const maxWidth = cellDim;
     for (
       let y = 0, yCell = 0;
       y < this.gridCanvas.height;
@@ -153,13 +152,15 @@ class CanvasRenderer extends RendererBase {
         x < this.gridCanvas.width;
         x += cellDim, xCell++
       ) {
-        gridCtx.fillText(`${xCell}`, x + cellDim - 1, y + 1, maxWidth);
-        gridCtx.fillText(
-          `${yCell}`,
-          x + cellDim - 1,
-          y + cellDim / 2,
-          maxWidth,
-        );
+        const coords = xCell.toString(10) + ',' + yCell.toString(10);
+        gridCtx.fillText(coords, x + cellDim, y + cellDim + 1, cellDim - 1);
+        // gridCtx.fillText(`${xCell.toString(10).padStart(2, ' ')}`, x + cellDim - 1, y + 1, maxWidth);
+        // gridCtx.fillText(
+        //   `${yCell.toString(10).padStart(2, ' ')}`,
+        //   x + cellDim - 1,
+        //   y + cellDim / 2,
+        //   maxWidth,
+        // );
       }
     }
 
