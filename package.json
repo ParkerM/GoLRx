@@ -16,15 +16,15 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "pixi.js": "^6.2.2",
-    "rxjs": "^7.5.4"
+    "pixi.js": "^6.3.0",
+    "rxjs": "^7.5.5"
   },
   "devDependencies": {
     "@jest/globals": "^27.5.1",
     "husky": "^7.0.4",
     "jest": "^27.5.1",
-    "lint-staged": "^12.3.4",
-    "prettier": "^2.5.1",
+    "lint-staged": "^12.3.8",
+    "prettier": "^2.6.2",
     "snowpack": "^3.8.8"
   },
   "lint-staged": {
