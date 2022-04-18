@@ -20,6 +20,15 @@ const CELL_FILL_ALIVE = 'rgba(0, 0, 0, 0.2)';
 const CELL_FILL_DEAD = 'rgba(0, 0, 0, 0)';
 const CELL_FILL_HOVER = 'rgba(128, 128, 128, 0.2)';
 
+/**
+ * @typedef {Object} CanvasRendererOpts
+ * @property {boolean} [drawGridCoords] - set true to draw text coordinates in each cell
+ */
+
+/**
+ * Canvas-based renderer.
+ * @extends RendererBase
+ */
 class CanvasRenderer extends RendererBase {
   /** @member {HTMLCanvasElement} */
   canvas;
@@ -30,11 +39,16 @@ class CanvasRenderer extends RendererBase {
   /** @member {CanvasRenderingContext2D} */
   ctx;
 
+  /** @member {CanvasRendererOpts} */
+  opts;
+
   /**
-   *  @param {Document} document - root HTML document
+   * @param document {Document} - root HTML document
+   * @param opts {CanvasRendererOpts} - overridable config options
    */
-  constructor(document) {
+  constructor(document, opts = { drawGridCoords: false }) {
     super();
+    this.opts = opts;
     this.initCanvas(document);
   }
 
@@ -118,8 +132,10 @@ class CanvasRenderer extends RendererBase {
     this.#addPathGridLines(gridCtx, aliasOffset);
     gridCtx.stroke();
 
-    // draw coords in each square
-    this.#drawGridCoords(gridCtx);
+    if (this.opts.drawGridCoords) {
+      // draw coords in each square
+      this.#drawGridCoords(gridCtx);
+    }
 
     return [this.canvas.width, this.canvas.height];
   }
