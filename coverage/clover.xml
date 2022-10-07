@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1665164791431" clover="3.2.0">
-  <project timestamp="1665164791431" name="All files">
-    <metrics statements="640" coveredstatements="613" conditionals="83" coveredconditionals="82" methods="62" coveredmethods="50" elements="785" coveredelements="745" complexity="0" loc="640" ncloc="640" packages="1" files="4" classes="4"/>
+<coverage generated="1665165366918" clover="3.2.0">
+  <project timestamp="1665165366918" name="All files">
+    <metrics statements="641" coveredstatements="614" conditionals="83" coveredconditionals="82" methods="62" coveredmethods="50" elements="786" coveredelements="746" complexity="0" loc="641" ncloc="641" packages="1" files="4" classes="4"/>
     <file name="cell.js" path="/home/runner/work/GoLRx/GoLRx/src/lib/cell.js">
       <metrics statements="155" coveredstatements="153" conditionals="21" coveredconditionals="21" methods="12" coveredmethods="10"/>
       <line num="1" count="3" type="cond" truecount="1" falsecount="0"/>
@@ -288,7 +288,7 @@
       <line num="124" count="1" type="stmt"/>
     </file>
     <file name="grid.js" path="/home/runner/work/GoLRx/GoLRx/src/lib/grid.js">
-      <metrics statements="236" coveredstatements="233" conditionals="37" coveredconditionals="36" methods="19" coveredmethods="19"/>
+      <metrics statements="237" coveredstatements="234" conditionals="37" coveredconditionals="36" methods="19" coveredmethods="19"/>
       <line num="1" count="2" type="cond" truecount="1" falsecount="0"/>
       <line num="2" count="2" type="stmt"/>
       <line num="3" count="2" type="stmt"/>
@@ -470,61 +470,62 @@
       <line num="179" count="208" type="stmt"/>
       <line num="180" count="208" type="stmt"/>
       <line num="181" count="208" type="stmt"/>
-      <line num="182" count="208" type="cond" truecount="1" falsecount="0"/>
-      <line num="183" count="144" type="stmt"/>
+      <line num="182" count="208" type="stmt"/>
+      <line num="183" count="208" type="cond" truecount="1" falsecount="0"/>
       <line num="184" count="144" type="stmt"/>
-      <line num="185" count="208" type="cond" truecount="1" falsecount="0"/>
-      <line num="186" count="144" type="stmt"/>
+      <line num="185" count="144" type="stmt"/>
+      <line num="186" count="208" type="cond" truecount="1" falsecount="0"/>
       <line num="187" count="144" type="stmt"/>
-      <line num="188" count="208" type="cond" truecount="1" falsecount="0"/>
-      <line num="189" count="182" type="stmt"/>
+      <line num="188" count="144" type="stmt"/>
+      <line num="189" count="208" type="cond" truecount="1" falsecount="0"/>
       <line num="190" count="182" type="stmt"/>
-      <line num="191" count="208" type="cond" truecount="1" falsecount="0"/>
-      <line num="192" count="182" type="stmt"/>
+      <line num="191" count="182" type="stmt"/>
+      <line num="192" count="208" type="cond" truecount="1" falsecount="0"/>
       <line num="193" count="182" type="stmt"/>
-      <line num="194" count="208" type="stmt"/>
-      <line num="195" count="208" type="cond" truecount="1" falsecount="0"/>
-      <line num="196" count="208" type="stmt"/>
-      <line num="197" count="2" type="stmt"/>
-      <line num="198" count="2" type="cond" truecount="1" falsecount="0"/>
-      <line num="199" count="7" type="stmt"/>
+      <line num="194" count="182" type="stmt"/>
+      <line num="195" count="208" type="stmt"/>
+      <line num="196" count="208" type="cond" truecount="1" falsecount="0"/>
+      <line num="197" count="208" type="stmt"/>
+      <line num="198" count="2" type="stmt"/>
+      <line num="199" count="2" type="cond" truecount="1" falsecount="0"/>
       <line num="200" count="7" type="stmt"/>
       <line num="201" count="7" type="stmt"/>
       <line num="202" count="7" type="stmt"/>
       <line num="203" count="7" type="stmt"/>
-      <line num="204" count="2" type="stmt"/>
-      <line num="205" count="2" type="cond" truecount="1" falsecount="0"/>
-      <line num="206" count="7" type="cond" truecount="1" falsecount="0"/>
-      <line num="207" count="3" type="stmt"/>
+      <line num="204" count="7" type="stmt"/>
+      <line num="205" count="2" type="stmt"/>
+      <line num="206" count="2" type="cond" truecount="1" falsecount="0"/>
+      <line num="207" count="7" type="cond" truecount="1" falsecount="0"/>
       <line num="208" count="3" type="stmt"/>
       <line num="209" count="3" type="stmt"/>
-      <line num="210" count="7" type="stmt"/>
+      <line num="210" count="3" type="stmt"/>
       <line num="211" count="7" type="stmt"/>
-      <line num="212" count="2" type="stmt"/>
+      <line num="212" count="7" type="stmt"/>
       <line num="213" count="2" type="stmt"/>
       <line num="214" count="2" type="stmt"/>
       <line num="215" count="2" type="stmt"/>
-      <line num="216" count="2" type="cond" truecount="1" falsecount="0"/>
-      <line num="217" count="10" type="cond" truecount="1" falsecount="0"/>
-      <line num="218" count="10" type="stmt"/>
-      <line num="219" count="2" type="stmt"/>
-      <line num="220" count="2" type="cond" truecount="1" falsecount="0"/>
-      <line num="221" count="4" type="stmt"/>
+      <line num="216" count="2" type="stmt"/>
+      <line num="217" count="2" type="cond" truecount="1" falsecount="0"/>
+      <line num="218" count="10" type="cond" truecount="1" falsecount="0"/>
+      <line num="219" count="10" type="stmt"/>
+      <line num="220" count="2" type="stmt"/>
+      <line num="221" count="2" type="cond" truecount="1" falsecount="0"/>
       <line num="222" count="4" type="stmt"/>
-      <line num="223" count="2" type="stmt"/>
-      <line num="224" count="2" type="cond" truecount="1" falsecount="0"/>
-      <line num="225" count="345" type="cond" truecount="1" falsecount="0"/>
-      <line num="226" count="345" type="stmt"/>
-      <line num="227" count="2" type="stmt"/>
+      <line num="223" count="4" type="stmt"/>
+      <line num="224" count="2" type="stmt"/>
+      <line num="225" count="2" type="cond" truecount="1" falsecount="0"/>
+      <line num="226" count="345" type="cond" truecount="1" falsecount="0"/>
+      <line num="227" count="345" type="stmt"/>
       <line num="228" count="2" type="stmt"/>
       <line num="229" count="2" type="stmt"/>
       <line num="230" count="2" type="stmt"/>
-      <line num="231" count="2" type="cond" truecount="1" falsecount="0"/>
-      <line num="232" count="11" type="stmt"/>
+      <line num="231" count="2" type="stmt"/>
+      <line num="232" count="2" type="cond" truecount="1" falsecount="0"/>
       <line num="233" count="11" type="stmt"/>
-      <line num="234" count="2" type="stmt"/>
+      <line num="234" count="11" type="stmt"/>
       <line num="235" count="2" type="stmt"/>
       <line num="236" count="2" type="stmt"/>
+      <line num="237" count="2" type="stmt"/>
     </file>
     <file name="util.js" path="/home/runner/work/GoLRx/GoLRx/src/lib/util.js">
       <metrics statements="125" coveredstatements="105" conditionals="13" coveredconditionals="13" methods="19" coveredmethods="12"/>

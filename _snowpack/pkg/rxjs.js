@@ -168,7 +168,7 @@ var Subscription = (function () {
         this.initialTeardown = initialTeardown;
         this.closed = false;
         this._parentage = null;
-        this._teardowns = null;
+        this._finalizers = null;
     }
     Subscription.prototype.unsubscribe = function () {
         var e_1, _a, e_2, _b;
@@ -197,23 +197,23 @@ var Subscription = (function () {
                     _parentage.remove(this);
                 }
             }
-            var initialTeardown = this.initialTeardown;
-            if (isFunction(initialTeardown)) {
+            var initialFinalizer = this.initialTeardown;
+            if (isFunction(initialFinalizer)) {
                 try {
-                    initialTeardown();
+                    initialFinalizer();
                 }
                 catch (e) {
                     errors = e instanceof UnsubscriptionError ? e.errors : [e];
                 }
             }
-            var _teardowns = this._teardowns;
-            if (_teardowns) {
-                this._teardowns = null;
+            var _finalizers = this._finalizers;
+            if (_finalizers) {
+                this._finalizers = null;
                 try {
-                    for (var _teardowns_1 = __values(_teardowns), _teardowns_1_1 = _teardowns_1.next(); !_teardowns_1_1.done; _teardowns_1_1 = _teardowns_1.next()) {
-                        var teardown_1 = _teardowns_1_1.value;
+                    for (var _finalizers_1 = __values(_finalizers), _finalizers_1_1 = _finalizers_1.next(); !_finalizers_1_1.done; _finalizers_1_1 = _finalizers_1.next()) {
+                        var finalizer = _finalizers_1_1.value;
                         try {
-                            execTeardown(teardown_1);
+                            execFinalizer(finalizer);
                         }
                         catch (err) {
                             errors = errors !== null && errors !== void 0 ? errors : [];
@@ -229,7 +229,7 @@ var Subscription = (function () {
                 catch (e_2_1) { e_2 = { error: e_2_1 }; }
                 finally {
                     try {
-                        if (_teardowns_1_1 && !_teardowns_1_1.done && (_b = _teardowns_1.return)) _b.call(_teardowns_1);
+                        if (_finalizers_1_1 && !_finalizers_1_1.done && (_b = _finalizers_1.return)) _b.call(_finalizers_1);
                     }
                     finally { if (e_2) throw e_2.error; }
                 }
@@ -243,7 +243,7 @@ var Subscription = (function () {
         var _a;
         if (teardown && teardown !== this) {
             if (this.closed) {
-                execTeardown(teardown);
+                execFinalizer(teardown);
             }
             else {
                 if (teardown instanceof Subscription) {
@@ -252,7 +252,7 @@ var Subscription = (function () {
                     }
                     teardown._addParent(this);
                 }
-                (this._teardowns = (_a = this._teardowns) !== null && _a !== void 0 ? _a : []).push(teardown);
+                (this._finalizers = (_a = this._finalizers) !== null && _a !== void 0 ? _a : []).push(teardown);
             }
         }
     };
@@ -274,8 +274,8 @@ var Subscription = (function () {
         }
     };
     Subscription.prototype.remove = function (teardown) {
-        var _teardowns = this._teardowns;
-        _teardowns && arrRemove(_teardowns, teardown);
+        var _finalizers = this._finalizers;
+        _finalizers && arrRemove(_finalizers, teardown);
         if (teardown instanceof Subscription) {
             teardown._removeParent(this);
         }
@@ -292,12 +292,12 @@ function isSubscription(value) {
     return (value instanceof Subscription ||
         (value && 'closed' in value && isFunction(value.remove) && isFunction(value.add) && isFunction(value.unsubscribe)));
 }
-function execTeardown(teardown) {
-    if (isFunction(teardown)) {
-        teardown();
+function execFinalizer(finalizer) {
+    if (isFunction(finalizer)) {
+        finalizer();
     }
     else {
-        teardown.unsubscribe();
+        finalizer.unsubscribe();
     }
 }
 
@@ -310,13 +310,16 @@ var config = {
 };
 
 var timeoutProvider = {
-    setTimeout: function () {
+    setTimeout: function (handler, timeout) {
         var args = [];
-        for (var _i = 0; _i < arguments.length; _i++) {
-            args[_i] = arguments[_i];
+        for (var _i = 2; _i < arguments.length; _i++) {
+            args[_i - 2] = arguments[_i];
         }
         var delegate = timeoutProvider.delegate;
-        return ((delegate === null || delegate === void 0 ? void 0 : delegate.setTimeout) || setTimeout).apply(void 0, __spreadArray([], __read(args)));
+        if (delegate === null || delegate === void 0 ? void 0 : delegate.setTimeout) {
+            return delegate.setTimeout.apply(delegate, __spreadArray([handler, timeout], __read(args)));
+        }
+        return setTimeout.apply(void 0, __spreadArray([handler, timeout], __read(args)));
     },
     clearTimeout: function (handle) {
         var delegate = timeoutProvider.delegate;
@@ -461,7 +464,7 @@ var SafeSubscriber = (function (_super) {
         var partialObserver;
         if (isFunction(observerOrNext) || !observerOrNext) {
             partialObserver = {
-                next: observerOrNext !== null && observerOrNext !== void 0 ? observerOrNext : undefined,
+                next: (observerOrNext !== null && observerOrNext !== void 0 ? observerOrNext : undefined),
                 error: error !== null && error !== void 0 ? error : undefined,
                 complete: complete !== null && complete !== void 0 ? complete : undefined,
             };
@@ -703,6 +706,7 @@ var Subject = (function (_super) {
     function Subject() {
         var _this = _super.call(this) || this;
         _this.closed = false;
+        _this.currentObservers = null;
         _this.observers = [];
         _this.isStopped = false;
         _this.hasError = false;
@@ -725,17 +729,19 @@ var Subject = (function (_super) {
             var e_1, _a;
             _this._throwIfClosed();
             if (!_this.isStopped) {
-                var copy = _this.observers.slice();
+                if (!_this.currentObservers) {
+                    _this.currentObservers = Array.from(_this.observers);
+                }
                 try {
-                    for (var copy_1 = __values(copy), copy_1_1 = copy_1.next(); !copy_1_1.done; copy_1_1 = copy_1.next()) {
-                        var observer = copy_1_1.value;
+                    for (var _b = __values(_this.currentObservers), _c = _b.next(); !_c.done; _c = _b.next()) {
+                        var observer = _c.value;
                         observer.next(value);
                     }
                 }
                 catch (e_1_1) { e_1 = { error: e_1_1 }; }
                 finally {
                     try {
-                        if (copy_1_1 && !copy_1_1.done && (_a = copy_1.return)) _a.call(copy_1);
+                        if (_c && !_c.done && (_a = _b.return)) _a.call(_b);
                     }
                     finally { if (e_1) throw e_1.error; }
                 }
@@ -771,7 +777,7 @@ var Subject = (function (_super) {
     };
     Subject.prototype.unsubscribe = function () {
         this.isStopped = this.closed = true;
-        this.observers = null;
+        this.observers = this.currentObservers = null;
     };
     Object.defineProperty(Subject.prototype, "observed", {
         get: function () {
@@ -791,10 +797,17 @@ var Subject = (function (_super) {
         return this._innerSubscribe(subscriber);
     };
     Subject.prototype._innerSubscribe = function (subscriber) {
+        var _this = this;
         var _a = this, hasError = _a.hasError, isStopped = _a.isStopped, observers = _a.observers;
-        return hasError || isStopped
-            ? EMPTY_SUBSCRIPTION
-            : (observers.push(subscriber), new Subscription(function () { return arrRemove(observers, subscriber); }));
+        if (hasError || isStopped) {
+            return EMPTY_SUBSCRIPTION;
+        }
+        this.currentObservers = null;
+        observers.push(subscriber);
+        return new Subscription(function () {
+            _this.currentObservers = null;
+            arrRemove(observers, subscriber);
+        });
     };
     Subject.prototype._checkFinalizedStatuses = function (subscriber) {
         var _a = this, hasError = _a.hasError, thrownError = _a.thrownError, isStopped = _a.isStopped;
@@ -894,13 +907,16 @@ var Action = (function (_super) {
 }(Subscription));
 
 var intervalProvider = {
-    setInterval: function () {
+    setInterval: function (handler, timeout) {
         var args = [];
-        for (var _i = 0; _i < arguments.length; _i++) {
-            args[_i] = arguments[_i];
+        for (var _i = 2; _i < arguments.length; _i++) {
+            args[_i - 2] = arguments[_i];
         }
         var delegate = intervalProvider.delegate;
-        return ((delegate === null || delegate === void 0 ? void 0 : delegate.setInterval) || setInterval).apply(void 0, __spreadArray([], __read(args)));
+        if (delegate === null || delegate === void 0 ? void 0 : delegate.setInterval) {
+            return delegate.setInterval.apply(delegate, __spreadArray([handler, timeout], __read(args)));
+        }
+        return setInterval.apply(void 0, __spreadArray([handler, timeout], __read(args)));
     },
     clearInterval: function (handle) {
         var delegate = intervalProvider.delegate;
@@ -919,6 +935,7 @@ var AsyncAction = (function (_super) {
         return _this;
     }
     AsyncAction.prototype.schedule = function (state, delay) {
+        var _a;
         if (delay === void 0) { delay = 0; }
         if (this.closed) {
             return this;
@@ -931,7 +948,7 @@ var AsyncAction = (function (_super) {
         }
         this.pending = true;
         this.delay = delay;
-        this.id = this.id || this.requestAsyncId(scheduler, this.id, delay);
+        this.id = (_a = this.id) !== null && _a !== void 0 ? _a : this.requestAsyncId(scheduler, this.id, delay);
         return this;
     };
     AsyncAction.prototype.requestAsyncId = function (scheduler, _id, delay) {
@@ -943,7 +960,9 @@ var AsyncAction = (function (_super) {
         if (delay != null && this.delay === delay && this.pending === false) {
             return id;
         }
-        intervalProvider.clearInterval(id);
+        if (id != null) {
+            intervalProvider.clearInterval(id);
+        }
         return undefined;
     };
     AsyncAction.prototype.execute = function (state, delay) {
@@ -1012,7 +1031,6 @@ var AsyncScheduler = (function (_super) {
         var _this = _super.call(this, SchedulerAction, now) || this;
         _this.actions = [];
         _this._active = false;
-        _this._scheduled = undefined;
         return _this;
     }
     AsyncScheduler.prototype.flush = function (action) {
