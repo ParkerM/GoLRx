@@ -1,5 +1,4 @@
 import * as PIXI from 'pixi.js';
-import { Subject } from 'rxjs';
 import { State } from '../lib/util.js';
 import { RendererBase } from './renderer-base.js';
 
@@ -52,12 +51,6 @@ class PixiRenderer extends RendererBase {
   #height;
 
   /**
-   * Subject that emits [x, y, isActive] when a cell is clicked.
-   * @type {Subject<[number, number, State]>}
-   */
-  cellToggled = new Subject();
-
-  /**
    *
    * @param doc {Document} - enclosing document
    * @param width {number} - desired app width
@@ -78,6 +71,7 @@ class PixiRenderer extends RendererBase {
     this.#rootContainer.width = width;
     this.#rootContainer.height = height;
     this.#app.stage.addChild(this.#rootContainer);
+    document.getElementById('game-div').appendChild(this.nativeCanvas);
   }
 
   /** @returns {HTMLCanvasElement} */
