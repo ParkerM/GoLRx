@@ -1,6 +1,7 @@
 import { Application, Container, Graphics, Text, TextStyle } from 'pixi.js';
 import { Subject } from 'rxjs';
-import { State } from '../lib/util.js';
+
+import { State } from '../lib/state.js';
 
 const BG_COLOR = 0xcccccc;
 const CELL_COLOR = 0xffffff;

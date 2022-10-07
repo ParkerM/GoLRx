@@ -1,5 +1,6 @@
 import { RendererBase } from './renderer-base.js';
-import { State } from '../lib/util.js';
+
+import { State } from '../lib/state.js';
 
 const CELL_FILL_OCCUPIED = 'rgba(0, 0, 0, 0.2)';
 const CELL_FILL_VACANT = 'rgba(0, 0, 0, 0.0)';
