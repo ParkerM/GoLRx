@@ -1,4 +1,12 @@
-import * as PIXI from 'pixi.js';
+import {
+  Application,
+  Container,
+  extensions,
+  Graphics,
+  InteractionManager,
+  Text,
+} from 'pixi.js';
+import { EventSystem } from '@pixi/events';
 import { Subject } from 'rxjs';
 import { State } from '../lib/util.js';
 
@@ -16,16 +24,16 @@ const ALPHA_CELL = 0.1;
 const CELL_SIZE_PADDED = CELL_SIZE - CELL_PADDING;
 
 class PixiRenderer {
-  /** @type {import('@pixi/app').Application} */
+  /** @type {Application} */
   #app;
 
-  /** @type {import('@pixi/display').Container} */
+  /** @type {Container} */
   #rootContainer;
 
-  /** @type {import('@pixi/display').Container} */
+  /** @type {Container} */
   #gridContainer;
 
-  /** @type {import('@pixi/graphics').Graphics[][]} */
+  /** @type {Graphics[][]} */
   #cells = [];
 
   /**
@@ -55,14 +63,27 @@ class PixiRenderer {
   constructor(doc, width = 1200, height = 600) {
     this.#width = width;
     this.#height = height;
-    this.#app = new PIXI.Application({
+
+    // pixi migration // TODO: cleanup after v7
+    // step1: Uninstall the extension manager
+    extensions.remove(InteractionManager);
+
+    // step2: create renderer/application
+    this.#app = new Application({
       width: width + CELL_PADDING * 2,
       height: height + CELL_PADDING * 2,
       backgroundColor: BG_COLOR,
       resolution: doc.defaultView.devicePixelRatio || 1,
     });
 
-    this.#rootContainer = new PIXI.Container();
+    // step3: install events
+    this.#app.renderer.addSystem(EventSystem, 'events');
+
+    // step4: switch to default behavior in v7 // TODO: cleanup after v7
+    Graphics.nextRoundedRectBehavior = true;
+    Text.nextLineHeightBehavior = true;
+
+    this.#rootContainer = new Container();
     this.#rootContainer.width = width;
     this.#rootContainer.height = height;
     this.#app.stage.addChild(this.#rootContainer);
@@ -78,7 +99,7 @@ class PixiRenderer {
    * @returns {[number, number]} - [cellsWide, cellsHigh] of the resulting grid.
    */
   drawGrid() {
-    this.#gridContainer = this.#rootContainer.addChild(new PIXI.Container());
+    this.#gridContainer = this.#rootContainer.addChild(new Container());
     this.#gridContainer.position.x = CELL_PADDING + CELL_PADDING / 2;
     this.#gridContainer.position.y = CELL_PADDING + CELL_PADDING / 2;
 
@@ -92,7 +113,7 @@ class PixiRenderer {
       for (let y = 0; y < vCells; y++) {
         const xPos = CELL_SIZE * x;
         const yPos = CELL_SIZE * y;
-        const graphics = new PIXI.Graphics()
+        const graphics = new Graphics()
           .beginFill(CELL_COLOR)
           .drawRect(xPos, yPos, CELL_SIZE_PADDED, CELL_SIZE_PADDED)
           .on('mousedown', (ev) => this.selectCell(ev, x, y))
@@ -105,7 +126,7 @@ class PixiRenderer {
         graphics.cellY = y;
         this.#cells[x].push(this.#gridContainer.addChild(graphics));
 
-        let text = new PIXI.Text(`${x},${y}`, {
+        let text = new Text(`${x},${y}`, {
           fontFamily: 'Arial',
           fontSize: CELL_SIZE / 2.5,
           fill: 0x000000,

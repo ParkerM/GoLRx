@@ -17,7 +17,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "pixi.js": "^6.5.5",
+    "@pixi/events": "^6.5.9",
+    "pixi.js": "^6.5.9",
     "rxjs": "^7.5.7"
   },
   "devDependencies": {
