@@ -80,3 +80,7 @@ canvas {
 .form-row > button {
   margin: 0.5em;
 }
+
+.form-row > button {
+  width: 2.5rem;
+}

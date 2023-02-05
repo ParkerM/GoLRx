@@ -1,4 +1,4 @@
-import * as PIXI from 'pixi.js';
+import { Application, Container, Graphics, Text, TextStyle } from 'pixi.js';
 import { Subject } from 'rxjs';
 import { State } from '../lib/util.js';
 
@@ -16,16 +16,16 @@ const ALPHA_CELL = 0.1;
 const CELL_SIZE_PADDED = CELL_SIZE - CELL_PADDING;
 
 class PixiRenderer {
-  /** @type {import('@pixi/app').Application} */
+  /** @type {Application} */
   #app;
 
-  /** @type {import('@pixi/display').Container} */
+  /** @type {Container} */
   #rootContainer;
 
-  /** @type {import('@pixi/display').Container} */
+  /** @type {Container} */
   #gridContainer;
 
-  /** @type {import('@pixi/graphics').Graphics[][]} */
+  /** @type {Graphics[][]} */
   #cells = [];
 
   /**
@@ -55,20 +55,19 @@ class PixiRenderer {
   constructor(doc, width = 1200, height = 600) {
     this.#width = width;
     this.#height = height;
-    this.#app = new PIXI.Application({
+    this.#app = new Application({
       width: width + CELL_PADDING * 2,
       height: height + CELL_PADDING * 2,
       backgroundColor: BG_COLOR,
       resolution: doc.defaultView.devicePixelRatio || 1,
     });
-
-    this.#rootContainer = new PIXI.Container();
+    this.#rootContainer = new Container();
     this.#rootContainer.width = width;
     this.#rootContainer.height = height;
     this.#app.stage.addChild(this.#rootContainer);
   }
 
-  /** @returns {HTMLCanvasElement} */
+  /** @returns {HTMLCanvasElement | OffscreenCanvas | ICanvas} */
   get nativeCanvas() {
     return this.#app.view;
   }
@@ -78,9 +77,16 @@ class PixiRenderer {
    * @returns {[number, number]} - [cellsWide, cellsHigh] of the resulting grid.
    */
   drawGrid() {
-    this.#gridContainer = this.#rootContainer.addChild(new PIXI.Container());
+    this.#gridContainer = this.#rootContainer.addChild(new Container());
     this.#gridContainer.position.x = CELL_PADDING + CELL_PADDING / 2;
     this.#gridContainer.position.y = CELL_PADDING + CELL_PADDING / 2;
+
+    const coordTextStyle = new TextStyle({
+      fontFamily: 'Arial',
+      fontSize: CELL_SIZE / 2.5,
+      fill: 0x000000,
+      align: 'left',
+    });
 
     const hCellsNum = this.#width / CELL_SIZE;
     const vCellsNum = this.#height / CELL_SIZE;
@@ -92,10 +98,11 @@ class PixiRenderer {
       for (let y = 0; y < vCells; y++) {
         const xPos = CELL_SIZE * x;
         const yPos = CELL_SIZE * y;
-        const graphics = new PIXI.Graphics()
+        /** @type {Graphics & Container} */
+        const graphics = new Graphics()
           .beginFill(CELL_COLOR)
           .drawRect(xPos, yPos, CELL_SIZE_PADDED, CELL_SIZE_PADDED)
-          .on('mousedown', (ev) => this.selectCell(ev, x, y))
+          .on('pointerdown', (ev) => this.selectCell(ev, x, y))
           .on('mouseover', (ev) => this.hoverOver(ev));
         graphics.interactive = true;
         graphics.buttonMode = true;
@@ -105,12 +112,7 @@ class PixiRenderer {
         graphics.cellY = y;
         this.#cells[x].push(this.#gridContainer.addChild(graphics));
 
-        let text = new PIXI.Text(`${x},${y}`, {
-          fontFamily: 'Arial',
-          fontSize: CELL_SIZE / 2.5,
-          fill: 0x000000,
-          align: 'left',
-        });
+        let text = new Text(`${x},${y}`, coordTextStyle);
         text.position.x = xPos;
         text.position.y = yPos;
         this.#gridContainer.addChild(text);
@@ -120,7 +122,7 @@ class PixiRenderer {
   }
 
   /**
-   * @param event {import('@pixi/interaction').InteractionEvent}
+   * @param event {import('pixi.js').InteractionEvent} // TODO
    */
   hoverOver(event) {
     const target = event.target;
@@ -131,7 +133,7 @@ class PixiRenderer {
   }
 
   /**
-   * @param event {import('@pixi/interaction').InteractionEvent}
+   * @param event {import('@pixi/interaction').InteractionEvent} // TODO
    * @param displayObject {import('@pixi/display').DisplayObject}
    */
   hoverOut(event, displayObject) {
@@ -142,7 +144,7 @@ class PixiRenderer {
   }
 
   /**
-   * @param event {import('@pixi/interaction').InteractionEvent}
+   * @param event {import('@pixi/interaction').InteractionEvent} // TODO
    * @param x {number} - the relative x coordinate of this cell in the grid
    * @param y {number} - the relative y coordinate of this cell in the grid
    */
