@@ -1,5 +1,5 @@
 TN:
-SF:src/lib/cell.js
+SF:lib/cell.js
 FN:20,<instance_members_initializer>
 FN:59,Cell
 FN:68,get state
@@ -208,7 +208,7 @@ BRF:21
 BRH:21
 end_of_record
 TN:
-SF:src/lib/game.js
+SF:lib/game.js
 FN:23,<instance_members_initializer>
 FN:54,Game
 FN:65,handleIncomingCellEvent
@@ -377,7 +377,7 @@ BRF:12
 BRH:12
 end_of_record
 TN:
-SF:src/lib/grid.js
+SF:lib/grid.js
 FN:10,<instance_members_initializer>
 FN:46,Grid
 FN:55,#initPlane
@@ -698,7 +698,7 @@ BRF:37
 BRH:36
 end_of_record
 TN:
-SF:src/lib/util.js
+SF:lib/util.js
 FN:5,<static_initializer>
 FN:9,State
 FN:14,get isAlive
