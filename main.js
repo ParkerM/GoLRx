@@ -14,11 +14,11 @@ console.log(`Rendered grid with cell layout ${xLen},${yLen}`);
 // Setup buttons
 /** @type {HTMLButtonElement} */
 const btnStart = document.getElementById('btnStart');
-btnStart.addEventListener('click', startButtonListener);
+btnStart.addEventListener('pointerup', startButtonListener);
 
 /** @type {HTMLButtonElement} */
 const btnTick = document.getElementById('btnTick');
-btnTick.addEventListener('click', doTick);
+btnTick.addEventListener('pointerdown', doTick);
 
 /** @type {HTMLOutputElement} */
 const intervalLabel = document.getElementById('lbl-ticks-sec');
