@@ -1,13 +1,10 @@
-import { PixiRenderer } from './web/pixi-renderer.js';
-import { Game } from './lib/game.js';
-import { Grid } from './lib/grid.js';
+import { CanvasRenderer } from './web/canvas-renderer.js';
 import { formatGrid } from './lib/util.js';
-
-// Create renderer and add to document
-const renderer = new PixiRenderer(document);
-document.getElementById('game-div').appendChild(renderer.nativeCanvas);
+import { Grid } from './lib/grid.js';
+import { Game } from './lib/game.js';
 
 // Prepare renderer stage and grid layout
+const renderer = new CanvasRenderer(document);
 const [xLen, yLen] = renderer.drawGrid();
 console.log(`Rendered grid with cell layout ${xLen},${yLen}`);
 
